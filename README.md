@@ -390,8 +390,8 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 **Bruno**
 
-- GitHub: [@seu-usuario](https://github.com/brunogoncalves99)
-- LinkedIn: [Seu Nome](https://linkedin.com/in/brunogoncalveslemos)
+- GitHub: [Bruno Gonçalves](https://github.com/brunogoncalves99)
+- LinkedIn: [Bruno Gonçalves](https://linkedin.com/in/brunogoncalveslemos)
 - Email: bruno.goncalves1999@hotmail.com
 
 ---
