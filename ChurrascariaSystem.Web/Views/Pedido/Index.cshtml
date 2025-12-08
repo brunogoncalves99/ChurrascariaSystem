@@ -1,0 +1,193 @@
+@model IEnumerable<PedidoDTO>
+@{
+    ViewData["Title"] = "Pedidos Abertos";
+}
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-clipboard-list text-success"></i> Pedidos Abertos</h2>
+        <p class="text-muted">Visualize e gerencie os pedidos em andamento</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="@Url.Action("Criar", "Pedido")" class="btn btn-success btn-lg">
+            <i class="fas fa-plus-circle"></i> Novo Pedido
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        @if (Model.Any())
+        {
+            <div class="row g-3">
+                @foreach (var pedido in Model)
+                {
+                    <div class="col-md-4">
+                        <div class="card shadow h-100 
+                            @(pedido.Status == "Aberto" ? "border-warning" : 
+                              pedido.Status == "Em Preparação" ? "border-info" : 
+                              pedido.Status == "Pronto" ? "border-success" : "border-secondary")">
+                            
+                            <div class="card-header 
+                                @(pedido.Status == "Aberto" ? "bg-warning" : 
+                                  pedido.Status == "Em Preparação" ? "bg-info text-white" : 
+                                  pedido.Status == "Pronto" ? "bg-success text-white" : "bg-secondary text-white")">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-chair"></i> Mesa @pedido.MesaNumero
+                                    </h5>
+                                    <span class="badge bg-light text-dark">
+                                        #@pedido.idPedido
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock"></i> @pedido.DataPedido.ToString("dd/MM/yyyy HH:mm")
+                                    </small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <strong>Status:</strong>
+                                    @if (pedido.Status == "Aberto")
+                                    {
+                                        <span class="badge bg-warning text-dark">Aberto</span>
+                                    }
+                                    else if (pedido.Status == "Em Preparação")
+                                    {
+                                        <span class="badge bg-info">Em Preparação</span>
+                                    }
+                                    else if (pedido.Status == "Pronto")
+                                    {
+                                        <span class="badge bg-success">Pronto</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@pedido.Status</span>
+                                    }
+                                </div>
+
+                                <div class="mb-3">
+                                    <strong>Itens:</strong>
+                                    <ul class="list-unstyled mb-0 mt-2">
+                                        @foreach (var item in pedido.Itens.Take(3))
+                                        {
+                                            <li class="small">
+                                                • @item.Quantidade x @item.ProdutoNome
+                                            </li>
+                                        }
+                                        @if (pedido.Itens.Count > 3)
+                                        {
+                                            <li class="small text-muted">
+                                                + @(pedido.Itens.Count - 3) itens...
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+
+                                <div class="mb-3">
+                                    <strong>Garçom:</strong>
+                                    <span class="text-muted">@pedido.NomeUsuario</span>
+                                </div>
+
+                                @if (!string.IsNullOrEmpty(pedido.Observacao))
+                                {
+                                    <div class="alert alert-info small mb-3">
+                                        <strong>Obs:</strong> @pedido.Observacao
+                                    </div>
+                                }
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h4 class="text-success mb-0">@pedido.ValorTotal.ToString("C")</h4>
+                                </div>
+                            </div>
+
+                            <div class="card-footer bg-light">
+                                <div class="d-grid gap-2">
+                                    <a href="@Url.Action("Detalhes", "Pedido", new { id = pedido.idPedido })" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i> Ver Detalhes
+                                    </a>
+                                    
+                                    <div class="btn-group" role="group">
+                                        @if (pedido.Status == "Aberto")
+                                        {
+                                            <button class="btn btn-sm btn-info text-white btn-status" 
+                                                    data-id="@pedido.idPedido" 
+                                                    data-status="Em Preparação">
+                                                <i class="fas fa-fire"></i> Preparar
+                                            </button>
+                                        }
+                                        else if (pedido.Status == "Em Preparação")
+                                        {
+                                            <button class="btn btn-sm btn-success btn-status"
+                                                    data-id="@pedido.idPedido"
+                                                    data-status="Pronto">
+                                                <i class="fas fa-check"></i> Pronto
+                                            </button>
+                                        }
+                                        else if (pedido.Status == "Pronto")
+                                        {
+                                            <button class="btn btn-sm btn-primary btn-status"
+                                                    data-id="@pedido.idPedido"
+                                                    data-status="Entregue">
+                                                <i class="fas fa-handshake"></i> Entregar
+                                            </button>
+                                        }
+                                        
+                                        <button class="btn btn-sm btn-danger btn-status"
+                                                data-id="@pedido.idPedido"
+                                                data-status="Cancelado">
+                                            <i class="fas fa-times"></i> Cancelar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="card shadow text-center p-5">
+                <i class="fas fa-clipboard-list fa-5x text-muted mb-3"></i>
+                <h3 class="text-muted">Nenhum pedido aberto</h3>
+                <p class="text-muted">Crie um novo pedido para começar</p>
+                <a href="@Url.Action("Criar", "Pedido")" class="btn btn-success btn-lg mt-3">
+                    <i class="fas fa-plus-circle"></i> Criar Pedido
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $('.btn-status').click(function() {
+            const btn = $(this);
+            const pedidoId = btn.data('id');
+            const novoStatus = btn.data('status');
+
+            if (!confirm(`Alterar status para "${novoStatus}"?`)) return;
+
+            $.ajax({
+                url: '@Url.Action("UpdateStatus", "Pedido")',
+                type: 'POST',
+                data: { id: pedidoId, status: novoStatus },
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert('Erro: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Erro ao atualizar status');
+                }
+            });
+        });
+    </script>
+}

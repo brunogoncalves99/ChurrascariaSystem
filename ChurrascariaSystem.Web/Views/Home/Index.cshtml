@@ -1,0 +1,105 @@
+@{
+    ViewData["Title"] = "Início";
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="text-center mb-5">
+            <h1 class="display-4"><i class="fas fa-fire text-danger"></i> Bem-vindo ao Sistema de Churrasquinho!</h1>
+            <p class="lead">Gerencie pedidos e mesas de forma rápida e eficiente</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm h-100 border-primary">
+            <div class="card-body">
+                <i class="fas fa-plus-circle fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">Novo Pedido</h5>
+                <p class="card-text">Crie um novo pedido para uma mesa</p>
+                <a href="@Url.Action("Criar", "Pedido")" class="btn btn-primary">
+                    <i class="fas fa-arrow-right"></i> Acessar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm h-100 border-success">
+            <div class="card-body">
+                <i class="fas fa-clipboard-list fa-3x text-success mb-3"></i>
+                <h5 class="card-title">Pedidos Abertos</h5>
+                <p class="card-text">Visualize todos os pedidos ativos</p>
+                <a href="@Url.Action("Index", "Pedido")" class="btn btn-success">
+                    <i class="fas fa-arrow-right"></i> Acessar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm h-100 border-warning">
+            <div class="card-body">
+                <i class="fas fa-chair fa-3x text-warning mb-3"></i>
+                <h5 class="card-title">Gerenciar Mesas</h5>
+                <p class="card-text">Veja o status de todas as mesas</p>
+                <a href="@Url.Action("Gerenciar", "Mesa")" class="btn btn-warning">
+                    <i class="fas fa-arrow-right"></i> Acessar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (User.IsInRole("Admin"))
+    {
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm h-100 border-danger">
+                <div class="card-body">
+                    <i class="fas fa-chart-line fa-3x text-danger mb-3"></i>
+                    <h5 class="card-title">Dashboard</h5>
+                    <p class="card-text">Visualize relatórios e estatísticas</p>
+                    <a href="@Url.Action("Index", "Dashboard")" class="btn btn-danger">
+                        <i class="fas fa-arrow-right"></i> Acessar
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Ações Rápidas</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="@Url.Action("Criar", "Pedido")" class="list-group-item list-group-item-action">
+                    <i class="fas fa-plus-circle text-primary"></i> Criar Novo Pedido
+                </a>
+                <a href="@Url.Action("Index", "Pedido")" class="list-group-item list-group-item-action">
+                    <i class="fas fa-list text-success"></i> Ver Pedidos Abertos
+                </a>
+                <a href="@Url.Action("Gerenciar", "Mesa")" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chair text-warning"></i> Status das Mesas
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fas fa-book"></i> Instruções</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>1.</strong> Selecione uma mesa disponível</p>
+                <p><strong>2.</strong> Adicione os produtos ao pedido</p>
+                <p><strong>3.</strong> Confirme o pedido e envie para a cozinha</p>
+                <p><strong>4.</strong> Acompanhe o status até a entrega</p>
+                <p class="mb-0"><strong>5.</strong> Finalize o pedido quando o cliente pagar</p>
+            </div>
+        </div>
+    </div>
+</div>

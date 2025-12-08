@@ -1,0 +1,229 @@
+@model IEnumerable<MesaDTO>
+@{
+    ViewData["Title"] = "Configurar Mesas";
+}
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-table text-warning"></i> Configuração de Mesas</h2>
+        <p class="text-muted">Cadastre e gerencie as mesas do estabelecimento</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <button class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#createModal">
+            <i class="fas fa-plus-circle"></i> Nova Mesa
+        </button>
+    </div>
+</div>
+
+<div class="row g-3">
+    @if (Model.Any())
+    {
+        @foreach (var mesa in Model.OrderBy(m => int.Parse(m.Numero)))
+        {
+            var statusClass = mesa.Status == StatusMesa.Livre ? "border-success" :
+                             mesa.Status == StatusMesa.Ocupada ? "border-danger" : "border-warning";
+
+            <div class="col-md-3">
+                <div class="card shadow @statusClass h-100">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Mesa @mesa.Numero</h5>
+                            @if (mesa.Status == StatusMesa.Livre)
+                            {
+                                <i class="fas fa-check-circle fa-2x text-success"></i>
+                            }
+                            else if (mesa.Status == StatusMesa.Ocupada)
+                            {
+                                <i class="fas fa-utensils fa-2x text-danger"></i>
+                            }
+                            else
+                            {
+                                <i class="fas fa-clock fa-2x text-warning"></i>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-2">
+                            <i class="fas fa-users text-primary"></i>
+                            <strong>Capacidade:</strong> @mesa.Capacidade pessoas
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Status:</strong> 
+                            <span class="badge @(mesa.Status == StatusMesa.Livre ? "bg-success" : 
+                                                 mesa.Status == StatusMesa.Ocupada ? "bg-danger" : "bg-warning")">
+                                @mesa.StatusDescricao
+                            </span>
+                        </p>
+                        <p class="mb-0">
+                            <i class="fas fa-power-off"></i>
+                            <strong>Estado:</strong> 
+                            <span class="badge @(mesa.Ativo ? "bg-success" : "bg-secondary")">
+                                @(mesa.Ativo ? "Ativa" : "Inativa")
+                            </span>
+                        </p>
+                    </div>
+                    <div class="card-footer bg-light">
+                        <div class="btn-group w-100" role="group">
+                            <button class="btn btn-sm btn-primary btn-edit"
+                            data-id="@mesa.idMesa"
+                                    data-numero="@mesa.Numero"
+                                    data-capacidade="@mesa.Capacidade"
+                                    data-ativo="@mesa.Ativo.ToString().ToLower()">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button class="btn btn-sm btn-danger btn-delete"
+                            data-id="@mesa.idMesa"
+                            data-numero="@mesa.Numero">
+                                <i class="fas fa-trash"></i> Excluir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12">
+            <div class="card shadow text-center p-5">
+                <i class="fas fa-chair fa-5x text-muted mb-3"></i>
+                <h3 class="text-muted">Nenhuma mesa cadastrada</h3>
+                <p class="text-muted">Comece cadastrando as mesas do seu estabelecimento</p>
+                <button class="btn btn-success btn-lg mt-3" data-bs-toggle="modal" data-bs-target="#createModal">
+                    <i class="fas fa-plus-circle"></i> Cadastrar Primeira Mesa
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal Criar Mesa -->
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus-circle"></i> Nova Mesa
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="Create" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Número da Mesa *</label>
+                        <input type="text" name="Numero" class="form-control form-control-lg" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Capacidade (pessoas) *</label>
+                        <input type="number" name="Capacidade" class="form-control form-control-lg" min="1" max="20" required />
+                    </div>
+                    <div class="form-check form-switch">
+                        <input type="checkbox" name="Ativo" class="form-check-input" checked />
+                        <label class="form-check-label">Mesa Ativa</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Cadastrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Mesa -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit"></i> Editar Mesa
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="Edit" method="post" id="editForm">
+                <input type="hidden" name="Id" id="editId" />
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Número da Mesa *</label>
+                        <input type="text" name="Numero" id="editNumero" class="form-control form-control-lg" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Capacidade (pessoas) *</label>
+                        <input type="number" name="Capacidade" id="editCapacidade" class="form-control form-control-lg" min="1" max="20" required />
+                    </div>
+                    <div class="form-check form-switch">
+                        <input type="checkbox" name="Ativo" id="editAtivo" class="form-check-input" />
+                        <label class="form-check-label">Mesa Ativa</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Excluir -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir a <strong>Mesa <span id="deleteNumero"></span></strong>?</p>
+                <p class="text-muted small">Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form asp-action="Delete" method="post" id="deleteForm" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Confirmar Exclusão
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Editar mesa
+        $('.btn-edit').click(function() {
+            const id = $(this).data('id');
+            const numero = $(this).data('numero');
+            const capacidade = $(this).data('capacidade');
+            const ativo = $(this).data('ativo') === 'true';
+
+            $('#editId').val(id);
+            $('#editNumero').val(numero);
+            $('#editCapacidade').val(capacidade);
+            $('#editAtivo').prop('checked', ativo);
+
+            $('#editModal').modal('show');
+        });
+
+        // Excluir mesa
+        $('.btn-delete').click(function() {
+            const id = $(this).data('id');
+            const numero = $(this).data('numero');
+
+            $('#deleteNumero').text(numero);
+            $('#deleteForm').attr('action', '@Url.Action("Delete")' + '/' + id);
+
+            $('#deleteModal').modal('show');
+        });
+    </script>
+}

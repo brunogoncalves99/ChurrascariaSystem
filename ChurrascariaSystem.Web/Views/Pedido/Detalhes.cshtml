@@ -1,0 +1,213 @@
+@model PedidoDTO
+@{
+    ViewData["Title"] = "Detalhes do Pedido";
+}
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-receipt text-info"></i> Detalhes do Pedido #@Model.idMesa</h2>
+        <p class="text-muted">Informações completas do pedido</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="@Url.Action("Index", "Pedido")" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow mb-3">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Informações do Pedido</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong><i class="fas fa-hashtag"></i> Número do Pedido:</strong>
+                        <p class="text-muted">#@Model.idMesa</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong><i class="fas fa-chair"></i> Mesa:</strong>
+                        <p class="text-muted">Mesa @Model.MesaNumero</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong><i class="fas fa-user"></i> Garçom:</strong>
+                        <p class="text-muted">@Model.NomeUsuario</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong><i class="fas fa-clock"></i> Data/Hora:</strong>
+                        <p class="text-muted">@Model.DataPedido.ToString("dd/MM/yyyy HH:mm")</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <strong><i class="fas fa-info-circle"></i> Status:</strong>
+                        <p>
+                            @if (Model.Status == "Aberto")
+                            {
+                                <span class="badge bg-warning text-dark fs-6">Aberto</span>
+                            }
+                            else if (Model.Status == "Em Preparação")
+                            {
+                                <span class="badge bg-info fs-6">Em Preparação</span>
+                            }
+                            else if (Model.Status == "Pronto")
+                            {
+                                <span class="badge bg-success fs-6">Pronto</span>
+                            }
+                            else if (Model.Status == "Entregue")
+                            {
+                                <span class="badge bg-primary fs-6">Entregue</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger fs-6">Cancelado</span>
+                            }
+                        </p>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Observacao))
+                {
+                    <div class="row">
+                        <div class="col-md-12">
+                            <strong><i class="fas fa-comment"></i> Observações:</strong>
+                            <div class="alert alert-info mt-2">
+                                @Model.Observacao
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-utensils"></i> Itens do Pedido</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Produto</th>
+                                <th class="text-center">Qtd</th>
+                                <th class="text-end">Preço Unit.</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Itens)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@item.ProdutoNome</strong>
+                                        @if (!string.IsNullOrEmpty(item.Observacao))
+                                        {
+                                            <br><small class="text-muted"><i class="fas fa-comment"></i> @item.Observacao</small>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">@item.Quantidade</span>
+                                    </td>
+                                    <td class="text-end">@item.PrecoUnitario.ToString("C")</td>
+                                    <td class="text-end"><strong>@item.Subtotal.ToString("C")</strong></td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-active">
+                                <td colspan="3" class="text-end"><strong>TOTAL:</strong></td>
+                                <td class="text-end"><h5 class="text-success mb-0">@Model.ValorTotal.ToString("C")</h5></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow sticky-top" style="top: 20px;">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="fas fa-tasks"></i> Ações</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    @if (Model.Status == "Aberto")
+                    {
+                        <button class="btn btn-info text-white btn-lg btn-status" data-status="Em Preparação">
+                            <i class="fas fa-fire"></i> Iniciar Preparação
+                        </button>
+                    }
+                    else if (Model.Status == "Em Preparação")
+                    {
+                        <button class="btn btn-success btn-lg btn-status" data-status="Pronto">
+                            <i class="fas fa-check"></i> Marcar como Pronto
+                        </button>
+                    }
+                    else if (Model.Status == "Pronto")
+                    {
+                        <button class="btn btn-primary btn-lg btn-status" data-status="Entregue">
+                            <i class="fas fa-handshake"></i> Marcar como Entregue
+                        </button>
+                    }
+
+                    @if (Model.Status != "Cancelado" && Model.Status != "Entregue")
+                    {
+                        <button class="btn btn-danger btn-status" data-status="Cancelado">
+                            <i class="fas fa-times"></i> Cancelar Pedido
+                        </button>
+                    }
+
+                    <hr>
+
+                    <a href="@Url.Action("PorMesa", "Pedido", new { mesaId = Model.idMesa })" class="btn btn-outline-primary">
+                        <i class="fas fa-chair"></i> Ver Outros Pedidos da Mesa
+                    </a>
+
+                    <a href="@Url.Action("Index", "Pedido")" class="btn btn-outline-secondary">
+                        <i class="fas fa-list"></i> Todos os Pedidos
+                    </a>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="text-center">
+                    <small class="text-muted">Pedido #@Model.idPedido</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $('.btn-status').click(function() {
+            const btn = $(this);
+            const novoStatus = btn.data('status');
+
+            if (!confirm(`Alterar status do pedido para "${novoStatus}"?`)) return;
+
+            $.ajax({
+                url: '@Url.Action("UpdateStatus", "Pedido")',
+                type: 'POST',
+                data: { id: @Model.idPedido, status: novoStatus },
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert('Erro: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Erro ao atualizar status');
+                }
+            });
+        });
+    </script>
+}

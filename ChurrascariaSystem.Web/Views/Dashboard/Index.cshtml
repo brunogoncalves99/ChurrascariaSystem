@@ -1,0 +1,219 @@
+@model DashboardDTO
+@{
+    ViewData["Title"] = "Dashboard Administrativo";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-chart-line text-danger"></i> Dashboard Administrativo</h2>
+        <p class="text-muted">Visão geral do faturamento e desempenho</p>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1">Faturamento Hoje</h6>
+                        <h3 class="mb-0">@Model.FaturamentoDia.ToString("C")</h3>
+                    </div>
+                    <i class="fas fa-dollar-sign fa-3x opacity-50"></i>
+                </div>
+                <small>@Model.TotalPedidosDia pedidos</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-success text-white shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1">Faturamento Mês</h6>
+                        <h3 class="mb-0">@Model.FaturamentoMes.ToString("C")</h3>
+                    </div>
+                    <i class="fas fa-calendar fa-3x opacity-50"></i>
+                </div>
+                <small>@Model.TotalPedidosMes pedidos</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-warning text-white shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1">Mesas Ocupadas</h6>
+                        <h3 class="mb-0">@Model.TotalMesasOcupadas</h3>
+                    </div>
+                    <i class="fas fa-chair fa-3x opacity-50"></i>
+                </div>
+                <small>@Model.TotalMesasLivres livres</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-danger text-white shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1">Pedidos Abertos</h6>
+                        <h3 class="mb-0">@Model.PedidosAbertos.Count</h3>
+                    </div>
+                    <i class="fas fa-clipboard-list fa-3x opacity-50"></i>
+                </div>
+                <small>Em andamento</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-area"></i> Faturamento Últimos 7 Dias</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="faturamentoChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-trophy"></i> Top 5 Produtos</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.ProdutosMaisVendidos.Any())
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var produto in Model.ProdutosMaisVendidos)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>@produto.NomeProduto</strong>
+                                    <br><small class="text-muted">@produto.Quantidade unidades</small>
+                                </div>
+                                <span class="badge bg-success rounded-pill">@produto.ValorTotal.ToString("C")</span>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted text-center">Nenhum produto vendido ainda</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="fas fa-clock"></i> Pedidos Abertos Agora</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.PedidosAbertos.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Mesa</th>
+                                    <th>Hora</th>
+                                    <th>Status</th>
+                                    <th>Valor Total</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var pedido in Model.PedidosAbertos)
+                                {
+                                    <tr>
+                                        <td><strong>Mesa @pedido.MesaNumero</strong></td>
+                                        <td>@pedido.DataPedido.ToString("HH:mm")</td>
+                                        <td>
+                                            @if (pedido.Status == "Aberto")
+                                            {
+                                                <span class="badge bg-warning">Aberto</span>
+                                            }
+                                            else if (pedido.Status == "Em Preparação")
+                                            {
+                                                <span class="badge bg-info">Em Preparação</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success">Pronto</span>
+                                            }
+                                        </td>
+                                        <td><strong>@pedido.ValorTotal.ToString("C")</strong></td>
+                                        <td>
+                                            <a href="@Url.Action("Detalhes", "Pedido", new { id = pedido.idPedido })" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted text-center">Nenhum pedido aberto no momento</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('faturamentoChart');
+        const labels = @Html.Raw(Json.Serialize(Model.FaturamentoUltimos7Dias.Select(f => f.Data.ToString("dd/MM"))));
+        const data = @Html.Raw(Json.Serialize(Model.FaturamentoUltimos7Dias.Select(f => f.Valor)));
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Faturamento (R$)',
+                    data: data,
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'R$ ' + value.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

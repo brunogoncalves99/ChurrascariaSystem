@@ -1,0 +1,121 @@
+@model LoginDTO
+@{
+    ViewData["Title"] = "Login";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Sistema Churrasquinho</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            max-width: 450px;
+            width: 100%;
+        }
+        .login-header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .login-header i {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        .login-body {
+            padding: 40px;
+        }
+        .form-control:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border: none;
+            padding: 12px;
+            font-weight: bold;
+        }
+        .btn-login:hover {
+            background: linear-gradient(135deg, #c82333 0%, #a71d2a 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="login-header">
+            <i class="fas fa-utensils"></i>
+            <h2 class="mb-0">Churrasquinho System</h2>
+            <p class="mb-0">Sistema de Pedidos</p>
+        </div>
+        <div class="login-body">
+            <h4 class="text-center mb-4">Bem-vindo!</h4>
+            
+            <form asp-controller="Account" asp-action="Login" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                
+                <div class="mb-3">
+                    <label asp-for="Cpf" class="form-label">
+                        <i class="fas fa-id-card"></i> CPF
+                    </label>
+                    <input asp-for="Cpf" class="form-control form-control-lg" placeholder="000.000.000-00" maxlength="14" />
+                    <span asp-validation-for="Cpf" class="text-danger"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Senha" class="form-label">
+                        <i class="fas fa-lock"></i> Senha
+                    </label>
+                    <input asp-for="Senha" type="password" class="form-control form-control-lg" placeholder="Digite sua senha" />
+                    <span asp-validation-for="Senha" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-danger btn-login w-100 btn-lg">
+                    <i class="fas fa-sign-in-alt"></i> Entrar
+                </button>
+            </form>
+
+            <hr class="my-4">
+            
+            <div class="text-center text-muted">
+                <small>
+                    <p class="mb-1"><strong>Credenciais de teste:</strong></p>
+                    <p class="mb-0">Admin: CPF 11111111111 | Senha: admin123</p>
+                    <p class="mb-0">Garçom: CPF 22222222222 | Senha: garcom123</p>
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#Cpf').mask('000.000.000-00');
+
+            $('form').on('submit', function(e) {
+                var cpfLimpo = $('#Cpf').val().replace(/\D/g, '');
+                $('#Cpf').val(cpfLimpo);
+
+                return true;
+            });
+        });
+    </script>
+</body>
+</html>

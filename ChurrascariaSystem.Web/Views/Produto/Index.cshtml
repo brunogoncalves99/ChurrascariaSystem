@@ -1,0 +1,166 @@
+@model IEnumerable<ProdutoDTO>
+@{
+    ViewData["Title"] = "Gerenciar Produtos";
+}
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-box text-primary"></i> Gerenciar Produtos</h2>
+        <p class="text-muted">Cadastre e organize os produtos do cardápio</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="@Url.Action("Create")" class="btn btn-success btn-lg">
+            <i class="fas fa-plus-circle"></i> Novo Produto
+        </a>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <input type="text" id="searchInput" class="form-control" placeholder="🔍 Buscar produto...">
+                    </div>
+                    <div class="col-md-6">
+                        <select id="tipoFilter" class="form-select">
+                            <option value="">Todos os Tipos</option>
+                            @foreach (var tipo in Model.Select(p => p.TipoProdutoNome).Distinct())
+                            {
+                                <option value="@tipo">@tipo</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.Any())
+{
+    <div class="row g-3" id="produtosContainer">
+        @foreach (var produto in Model)
+        {
+            <div class="col-md-4 produto-item" data-tipo="@produto.TipoProdutoNome" data-nome="@produto.Nome.ToLower()">
+                <div class="card shadow h-100 @(produto.Ativo ? "border-success" : "border-danger")">
+                    <div class="card-header @(produto.Ativo ? "bg-success" : "bg-danger") text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">@produto.Nome</h5>
+                            <span class="badge @(produto.Ativo ? "bg-light text-success" : "bg-light text-danger")">
+                                @(produto.Ativo ? "Ativo" : "Inativo")
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-tag"></i> @produto.TipoProdutoNome
+                        </p>
+                        
+                        @if (!string.IsNullOrEmpty(produto.Descricao))
+                        {
+                            <p class="card-text">@produto.Descricao</p>
+                        }
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <h3 class="text-success mb-0">@produto.Preco.ToString("C")</h3>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-light">
+                        <div class="btn-group w-100" role="group">
+                            <a href="@Url.Action("Edit", new { id = produto.idProduto })" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+                            <button class="btn btn-sm btn-danger btn-delete" data-id="@produto.idProduto" data-nome="@produto.Nome">
+                                <i class="fas fa-trash"></i> Excluir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="card shadow text-center p-5">
+        <i class="fas fa-box-open fa-5x text-muted mb-3"></i>
+        <h3 class="text-muted">Nenhum produto cadastrado</h3>
+        <p class="text-muted">Comece cadastrando o primeiro produto do seu cardápio</p>
+        <a href="@Url.Action("Create")" class="btn btn-success btn-lg mt-3">
+            <i class="fas fa-plus-circle"></i> Cadastrar Primeiro Produto
+        </a>
+    </div>
+}
+
+<!-- Modal de Confirmação -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir o produto <strong id="produtoNome"></strong>?</p>
+                <p class="text-muted small">Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Confirmar Exclusão
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Busca
+        $('#searchInput').on('keyup', function() {
+            const searchTerm = $(this).val().toLowerCase();
+            filterProdutos();
+        });
+
+        // Filtro por tipo
+        $('#tipoFilter').on('change', function() {
+            filterProdutos();
+        });
+
+        function filterProdutos() {
+            const searchTerm = $('#searchInput').val().toLowerCase();
+            const tipoSelecionado = $('#tipoFilter').val();
+
+            $('.produto-item').each(function() {
+                const nome = $(this).data('nome');
+                const tipo = $(this).data('tipo');
+                
+                const matchSearch = nome.includes(searchTerm);
+                const matchTipo = tipoSelecionado === '' || tipo === tipoSelecionado;
+                
+                if (matchSearch && matchTipo) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+
+        // Modal de exclusão
+        $('.btn-delete').click(function() {
+            const produtoId = $(this).data('id');
+            const produtoNome = $(this).data('nome');
+            
+            $('#produtoNome').text(produtoNome);
+            $('#deleteForm').attr('action', '@Url.Action("Delete")' + '/' + produtoId);
+            $('#deleteModal').modal('show');
+        });
+    </script>
+}

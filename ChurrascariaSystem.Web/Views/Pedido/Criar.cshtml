@@ -1,0 +1,236 @@
+@{
+    ViewData["Title"] = "Criar Pedido";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-plus-circle text-success"></i> Criar Novo Pedido</h2>
+        <p class="text-muted">Selecione a mesa e adicione os produtos</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow mb-3">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-chair"></i> Selecione a Mesa</h5>
+            </div>
+            <div class="card-body">
+                <select id="mesaSelect" class="form-select form-select-lg">
+                    <option value="">-- Selecione uma mesa --</option>
+                    @foreach (var mesa in ViewBag.Mesas)
+                    {
+                        <option value="@mesa.idMesa">Mesa @mesa.Numero - @mesa.Capacidade pessoas (@mesa.StatusDescricao)</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-utensils"></i> Selecione os Produtos</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Tipo de Produto:</label>
+                    <select id="tipoSelect" class="form-select">
+                        <option value="">-- Todos --</option>
+                        @foreach (var tipo in ViewBag.TiposProduto)
+                        {
+                            <option value="@tipo.idTipoProduto">@tipo.Nome</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="row g-3" id="produtosContainer">
+                    @foreach (var produto in ViewBag.Produtos)
+                    {
+                        <div class="col-md-6 produto-card" data-tipo="@produto.idTipoProduto">
+                            <div class="card h-100 border-primary">
+                                <div class="card-body">
+                                    <h5 class="card-title">@produto.Nome</h5>
+                                    <p class="card-text text-muted small">@produto.Descricao</p>
+                                    <p class="text-primary fw-bold fs-5">@produto.Preco.ToString("C")</p>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control quantidade" min="1" value="1" data-id="@produto.idProduto" data-nome="@produto.Nome" data-preco="@produto.Preco">
+                                        <button class="btn btn-success btn-adicionar" data-id="@produto.idProduto">
+                                            <i class="fas fa-plus"></i> Adicionar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow sticky-top" style="top: 20px;">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="fas fa-shopping-cart"></i> Carrinho</h5>
+            </div>
+            <div class="card-body">
+                <div id="carrinhoItens">
+                    <p class="text-muted text-center">Carrinho vazio</p>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <strong>Total:</strong>
+                    <h4 class="text-success mb-0" id="valorTotal">R$ 0,00</h4>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Observação:</label>
+                    <textarea id="observacao" class="form-control" rows="2" placeholder="Observações do pedido..."></textarea>
+                </div>
+                <button id="btnFinalizar" class="btn btn-success w-100 btn-lg" disabled>
+                    <i class="fas fa-check-circle"></i> Finalizar Pedido
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let carrinho = [];
+        let mesaSelecionada = null;
+
+        // Filtrar produtos por tipo
+        $('#tipoSelect').change(function() {
+            const tipoId = $(this).val();
+            if (tipoId === '') {
+                $('.produto-card').show();
+            } else {
+                $('.produto-card').hide();
+                $(`.produto-card[data-tipo="${tipoId}"]`).show();
+            }
+        });
+
+        // Selecionar mesa
+        $('#mesaSelect').change(function() {
+            mesaSelecionada = $(this).val();
+            validarFinalizacao();
+        });
+
+        // Adicionar produto ao carrinho
+        $('.btn-adicionar').click(function() {
+            const btn = $(this);
+            const input = btn.closest('.input-group').find('.quantidade');
+            const idProduto = parseInt(btn.data('idProduto'));
+            const quantidade = parseInt(input.val());
+            const nome = input.data('nome');
+            const preco = parseFloat(input.data('preco'));
+
+            if (quantidade < 1) {
+                alert('Quantidade inválida');
+                return;
+            }
+
+            // Verifica se o produto já está no carrinho
+            const existente = carrinho.find(item => item.idProduto === idProduto);
+            if (existente) {
+                existente.quantidade += quantidade;
+            } else {
+                carrinho.push({
+                    idProduto: idProduto,
+                    nome: nome,
+                    quantidade: quantidade,
+                    precoUnitario: preco
+                });
+            }
+
+            atualizarCarrinho();
+            input.val(1);
+        });
+
+        function atualizarCarrinho() {
+            const container = $('#carrinhoItens');
+            container.empty();
+
+            if (carrinho.length === 0) {
+                container.html('<p class="text-muted text-center">Carrinho vazio</p>');
+                $('#valorTotal').text('R$ 0,00');
+                validarFinalizacao();
+                return;
+            }
+
+            let total = 0;
+            carrinho.forEach((item, index) => {
+                const subtotal = item.quantidade * item.precoUnitario;
+                total += subtotal;
+
+                const html = `
+                    <div class="card mb-2">
+                        <div class="card-body p-2">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">${item.nome}</h6>
+                                    <small class="text-muted">${item.quantidade}x R$ ${item.precoUnitario.toFixed(2)}</small>
+                                </div>
+                                <button class="btn btn-sm btn-danger btn-remover" data-index="${index}">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="text-end">
+                                <strong>R$ ${subtotal.toFixed(2)}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.append(html);
+            });
+
+            $('#valorTotal').text(`R$ ${total.toFixed(2)}`);
+            validarFinalizacao();
+
+            // Event listener para remover itens
+            $('.btn-remover').click(function() {
+                const index = $(this).data('index');
+                carrinho.splice(index, 1);
+                atualizarCarrinho();
+            });
+        }
+
+        function validarFinalizacao() {
+            const mesaValida = mesaSelecionada && mesaSelecionada !== '';
+            const carrinhoValido = carrinho.length > 0;
+            $('#btnFinalizar').prop('disabled', !(mesaValida && carrinhoValido));
+        }
+
+        // Finalizar pedido
+        $('#btnFinalizar').click(function() {
+            if (!confirm('Confirmar pedido?')) return;
+
+            const pedido = {
+                mesaId: parseInt(mesaSelecionada),
+                observacao: $('#observacao').val(),
+                itens: carrinho.map(item => ({
+                    idProduto: item.idProduto,
+                    quantidade: item.quantidade,
+                    observacao: ''
+                }))
+            };
+
+            $.ajax({
+                url: '@Url.Action("Criar", "Pedido")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(pedido),
+                success: function(response) {
+                    if (response.success) {
+                        alert('Pedido criado com sucesso!');
+                        window.location.href = '@Url.Action("Index", "Pedido")';
+                    } else {
+                        alert('Erro: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Erro ao criar pedido');
+                }
+            });
+        });
+    </script>
+}

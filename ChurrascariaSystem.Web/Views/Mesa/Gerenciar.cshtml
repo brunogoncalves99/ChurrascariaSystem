@@ -1,0 +1,187 @@
+@model IEnumerable<MesaDTO>
+@{
+    ViewData["Title"] = "Gerenciar Mesas";
+}
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-chair text-warning"></i> Gerenciar Mesas</h2>
+        <p class="text-muted">Visualize e gerencie o status de todas as mesas</p>
+    </div>
+    @if (User.IsInRole("Admin"))
+    {
+        <div class="col-md-4 text-end">
+            <a href="@Url.Action("Index", "Mesa")" class="btn btn-primary">
+                <i class="fas fa-cog"></i> Configurar Mesas
+            </a>
+        </div>
+    }
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <div class="p-3">
+                            <i class="fas fa-circle text-success fa-2x mb-2"></i>
+                            <h5>Livres</h5>
+                            <h2 class="text-success">@Model.Count(m => m.Status == StatusMesa.Livre)</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3">
+                            <i class="fas fa-circle text-danger fa-2x mb-2"></i>
+                            <h5>Ocupadas</h5>
+                            <h2 class="text-danger">@Model.Count(m => m.Status == StatusMesa.Ocupada)</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3">
+                            <i class="fas fa-circle text-warning fa-2x mb-2"></i>
+                            <h5>Reservadas</h5>
+                            <h2 class="text-warning">@Model.Count(m => m.Status == StatusMesa.Reservada)</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    @foreach (var mesa in Model.OrderBy(m => int.Parse(m.Numero)))
+    {
+        var statusClass = mesa.Status == StatusMesa.Livre ? "mesa-livre" :
+                         mesa.Status == StatusMesa.Ocupada ? "mesa-ocupada" : "mesa-reservada";
+        
+        var iconClass = mesa.Status == StatusMesa.Livre ? "fa-check-circle" :
+                       mesa.Status == StatusMesa.Ocupada ? "fa-utensils" : "fa-clock";
+
+        <div class="col-md-3 col-sm-6">
+            <div class="card shadow mesa-card @statusClass" data-mesa-id="@mesa.idMesa">
+                <div class="card-body text-center p-4">
+                    <i class="fas @iconClass fa-3x mb-3"></i>
+                    <h3 class="mb-2">Mesa @mesa.Numero</h3>
+                    <p class="mb-2">
+                        <i class="fas fa-users"></i> @mesa.Capacidade pessoas
+                    </p>
+                    <h5 class="mb-3">
+                        <span class="badge bg-white text-dark">@mesa.StatusDescricao</span>
+                    </h5>
+
+                    <div class="d-grid gap-2">
+                        @if (mesa.Status == StatusMesa.Livre)
+                        {
+                            <a href="@Url.Action("Criar", "Pedido", new { mesaId = mesa.idMesa })"
+                               class="btn btn-light">
+                                <i class="fas fa-plus-circle"></i> Novo Pedido
+                            </a>
+                            <button class="btn btn-outline-light btn-status"
+                                    data-id="@mesa.idMesa"
+                                    data-status="2">
+                                <i class="fas fa-chair"></i> Marcar Ocupada
+                            </button>
+                        }
+                        else if (mesa.Status == StatusMesa.Ocupada)
+                        {
+                            <a href="@Url.Action("PorMesa", "Pedido", new { mesaId = mesa.idMesa })"
+                               class="btn btn-light">
+                                <i class="fas fa-eye"></i> Ver Pedidos
+                            </a>
+                            <button class="btn btn-outline-light btn-valor"
+                                    data-id="@mesa.idMesa">
+                                <i class="fas fa-dollar-sign"></i> Ver Total
+                            </button>
+                            <button class="btn btn-outline-light btn-status"
+                                    data-id="@mesa.idMesa"
+                                    data-status="1">
+                                <i class="fas fa-check"></i> Liberar Mesa
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-outline-light btn-status"
+                                    data-id="@mesa.idMesa"
+                                    data-status="2">
+                                <i class="fas fa-chair"></i> Ocupar
+                            </button>
+                            <button class="btn btn-outline-light btn-status"
+                                    data-id="@mesa.idMesa"
+                                    data-status="1">
+                                <i class="fas fa-times"></i> Cancelar Reserva
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal para mostrar valor total -->
+<div class="modal fade" id="valorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-calculator"></i> Valor Total da Mesa
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <h1 class="display-4 text-success" id="valorTotalMesa">R$ 0,00</h1>
+                <p class="text-muted">Total dos pedidos abertos</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Atualizar status da mesa
+        $('.btn-status').click(function() {
+            const btn = $(this);
+            const mesaId = btn.data('id');
+            const novoStatus = btn.data('status');
+
+            $.ajax({
+                url: '@Url.Action("UpdateStatus", "Mesa")',
+                type: 'POST',
+                data: { id: mesaId, status: novoStatus },
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert('Erro ao atualizar status');
+                    }
+                },
+                error: function() {
+                    alert('Erro ao atualizar status');
+                }
+            });
+        });
+
+        // Ver valor total da mesa
+        $('.btn-valor').click(function() {
+            const mesaId = $(this).data('id');
+
+            $.ajax({
+                url: '@Url.Action("GetValorTotalMesa", "Pedido")',
+                type: 'GET',
+                data: { mesaId: mesaId },
+                success: function(response) {
+                    $('#valorTotalMesa').text('R$ ' + response.valorTotal.toFixed(2).replace('.', ','));
+                    $('#valorModal').modal('show');
+                },
+                error: function() {
+                    alert('Erro ao buscar valor');
+                }
+            });
+        });
+    </script>
+}
