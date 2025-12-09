@@ -1,0 +1,271 @@
+@model ContaMesaDTO
+@{
+    ViewData["Title"] = $"Conta - Mesa {Model.MesaNumero}";
+}
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-file-invoice-dollar text-success"></i> Conta - Mesa @Model.MesaNumero</h2>
+        <p class="text-muted">Detalhes completos da conta</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="@Url.Action("Contas")" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
+</div>
+
+<!-- Resumo da Conta -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card shadow border-success" style="border-width: 3px;">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Resumo da Conta</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <i class="fas fa-chair fa-2x text-primary mb-2"></i>
+                            <h4 class="mb-0">Mesa @Model.MesaNumero</h4>
+                            <small class="text-muted">Número da Mesa</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <i class="fas fa-receipt fa-2x text-info mb-2"></i>
+                            <h4 class="mb-0">@Model.QuantidadePedidos</h4>
+                            <small class="text-muted">Pedidos</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                            <h4 class="mb-0">@Model.PrimeiroPedido?.ToString("HH:mm")</h4>
+                            <small class="text-muted">Primeiro Pedido</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <i class="fas fa-dollar-sign fa-2x text-success mb-2"></i>
+                            <h4 class="mb-0">R$ @Model.ValorTotal.ToString("N2")</h4>
+                            <small class="text-muted">Total</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de Pedidos -->
+<div class="row">
+    <div class="col-md-12">
+        <h4 class="mb-3"><i class="fas fa-list"></i> Pedidos da Mesa</h4>
+
+        @foreach (var pedido in Model.Pedidos.OrderBy(p => p.DataPedido))
+        {
+            var statusColor = pedido.Status switch
+            {
+                "Aberto" => "border-info",
+                "Em Preparação" => "border-warning",
+                "Pronto" => "border-success",
+                "Entregue" => "border-primary",
+                _ => "border-secondary"
+            };
+
+            var badgeColor = pedido.Status switch
+            {
+                "Aberto" => "bg-info",
+                "Em Preparação" => "bg-warning",
+                "Pronto" => "bg-success",
+                "Entregue" => "bg-primary",
+                _ => "bg-secondary"
+            };
+
+            <div class="card mb-3 @statusColor" style="border-width: 2px;">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h6 class="mb-0">
+                                <i class="fas fa-receipt"></i> Pedido #@pedido.idPedido
+                            </h6>
+                            <small class="text-muted">
+                                <i class="fas fa-clock"></i> @pedido.DataPedido.ToString("dd/MM/yyyy HH:mm")
+                            </small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <span class="badge @badgeColor">@pedido.Status</span>
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <h5 class="mb-0 text-success">R$ @pedido.ValorTotal.ToString("N2")</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Produto</th>
+                                <th class="text-center">Qtd</th>
+                                <th class="text-end">Preço Unit.</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in pedido.Itens)
+                            {
+                                <tr>
+                                    <td>
+                                        @item.ProdutoNome
+                                        @if (!string.IsNullOrEmpty(item.Observacao))
+                                        {
+                                            <br><small class="text-muted"><i class="fas fa-comment"></i> @item.Observacao</small>
+                                        }
+                                    </td>
+                                    <td class="text-center">@item.Quantidade</td>
+                                    <td class="text-end">R$ @item.PrecoUnitario.ToString("N2")</td>
+                                    <td class="text-end"><strong>R$ @item.Subtotal.ToString("N2")</strong></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    @if (!string.IsNullOrEmpty(pedido.Observacao))
+                    {
+                        <div class="alert alert-info mt-3 mb-0">
+                            <i class="fas fa-comment"></i> <strong>Observação:</strong> @pedido.Observacao
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Card Total -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card shadow border-success" style="border-width: 3px;">
+            <div class="card-body text-center p-4">
+                <h3 class="mb-2">Total da Conta</h3>
+                <h1 class="text-success mb-3">R$ @Model.ValorTotal.ToString("N2")</h1>
+                
+                @if (!Model.PossuiPedidosAbertos)
+                {
+                    <button type="button" class="btn btn-success btn-lg" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#fecharContaModal">
+                        <i class="fas fa-cash-register"></i> Fechar Conta
+                    </button>
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Aguarde!</strong> Ainda há pedidos não finalizados nesta mesa.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Fechar Conta -->
+<div class="modal fade" id="fecharContaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-cash-register"></i> Fechar Conta - Mesa @Model.MesaNumero
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="FecharConta" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="mesaId" value="@Model.idMesa" />
+                
+                <div class="modal-body">
+                    <!-- Resumo dos Itens -->
+                    <div class="mb-4">
+                        <h5><i class="fas fa-list"></i> Resumo dos Itens</h5>
+                        <table class="table table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Item</th>
+                                    <th class="text-center">Qtd</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    var itensAgrupados = Model.Pedidos
+                                        .SelectMany(p => p.Itens)
+                                        .GroupBy(i => i.ProdutoNome)
+                                        .Select(g => new
+                                        {
+                                            Nome = g.Key,
+                                            Quantidade = g.Sum(i => i.Quantidade),
+                                            Total = g.Sum(i => i.Subtotal)
+                                        })
+                                        .OrderBy(i => i.Nome);
+                                }
+                                @foreach (var item in itensAgrupados)
+                                {
+                                    <tr>
+                                        <td>@item.Nome</td>
+                                        <td class="text-center">@item.Quantidade</td>
+                                        <td class="text-end">R$ @item.Total.ToString("N2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <th colspan="2" class="text-end">TOTAL:</th>
+                                    <th class="text-end text-success">R$ @Model.ValorTotal.ToString("N2")</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Forma de Pagamento -->
+                    <div class="mb-3">
+                        <label class="form-label">Forma de Pagamento *</label>
+                        <select name="formaPagamento" class="form-select form-select-lg" required>
+                            <option value="">Selecione...</option>
+                            <option value="Dinheiro">💵 Dinheiro</option>
+                            <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
+                            <option value="Cartão de Débito">💳 Cartão de Débito</option>
+                            <option value="PIX">📱 PIX</option>
+                            <option value="Vale Refeição">🎫 Vale Refeição</option>
+                            <option value="Outros">💰 Outros</option>
+                        </select>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Atenção:</strong> Esta ação não pode ser desfeita!
+                        A mesa será liberada após o fechamento da conta.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-check"></i> Confirmar Pagamento - R$ @Model.ValorTotal.ToString("N2")
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Imprimir conta
+        function imprimirConta() {
+            window.print();
+        }
+    </script>
+}

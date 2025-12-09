@@ -17,7 +17,9 @@ namespace ChurrascariaSystem.Application.DTOs
 
         [StringLength(200, ErrorMessage = "Observação deve ter no máximo 200 caracteres")]
         public string? Observacao { get; set; }
-
+        public bool Pago { get; set; } = false;
+        public DateTime? DataPagamento { get; set; }
+        public string? FormaPagamento { get; set; }
         public List<ItemPedidoDTO> Itens { get; set; } = new List<ItemPedidoDTO>();
     }
 }

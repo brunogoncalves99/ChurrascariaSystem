@@ -12,5 +12,8 @@ namespace ChurrascariaSystem.Application.Interfaces
         Task UpdateAsync(MesaDTO mesaDto);
         Task UpdateStatusAsync(int id, int status);
         Task DeleteAsync(int id);
+        Task<IEnumerable<ContaMesaDTO>> GetContasAbertasAsync();
+        Task<ContaMesaDTO?> GetContaMesaAsync(int mesaId);
+        Task FecharContaAsync(int mesaId, string formaPagamento);
     }
 }

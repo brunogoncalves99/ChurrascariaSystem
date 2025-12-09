@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ChurrascariaSystem.Web.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public class MesaController : Controller
     {
         private readonly IMesaService _mesaService;
@@ -28,15 +28,25 @@ namespace ChurrascariaSystem.Web.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(MesaDTO mesaDto)
         {
-            if (!ModelState.IsValid)
+            if (mesaDto == null)
             {
-                return View(mesaDto);
+                TempData["Error"] = "Dados inválidos. Verifique os campos.";
+                return RedirectToAction(nameof(Index));
             }
 
-            await _mesaService.CreateAsync(mesaDto);
-            TempData["Success"] = "Mesa criada com sucesso!";
+            try
+            {
+                await _mesaService.CreateAsync(mesaDto);
+                TempData["Success"] = $"Mesa {mesaDto.Numero} criada com sucesso!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Erro ao criar mesa: {ex.Message}";
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -53,23 +63,43 @@ namespace ChurrascariaSystem.Web.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(MesaDTO mesaDto)
         {
             if (!ModelState.IsValid)
             {
-                return View(mesaDto);
+                TempData["Error"] = "Dados inválidos. Verifique os campos.";
+                return RedirectToAction(nameof(Index));
             }
 
-            await _mesaService.UpdateAsync(mesaDto);
-            TempData["Success"] = "Mesa atualizada com sucesso!";
+            try
+            {
+                await _mesaService.UpdateAsync(mesaDto);
+                TempData["Success"] = $"Mesa {mesaDto.Numero} atualizada com sucesso!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Erro ao atualizar mesa: {ex.Message}";
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            await _mesaService.DeleteAsync(id);
-            TempData["Success"] = "Mesa excluída com sucesso!";
+            try
+            {
+                var mesa = await _mesaService.GetByIdAsync(id);
+                await _mesaService.DeleteAsync(id);
+                TempData["Success"] = $"Mesa {mesa?.Numero} excluída com sucesso!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Erro ao excluir mesa: {ex.Message}";
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -87,6 +117,44 @@ namespace ChurrascariaSystem.Web.Controllers
         {
             await _mesaService.UpdateStatusAsync(id, status);
             return Json(new { success = true });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Contas()
+        {
+            var contas = await _mesaService.GetContasAbertasAsync();
+            return View(contas);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DetalheConta(int id)
+        {
+            var conta = await _mesaService.GetContaMesaAsync(id);
+            if (conta == null)
+            {
+                TempData["Error"] = "Nenhuma conta aberta encontrada para esta mesa.";
+                return RedirectToAction(nameof(Contas));
+            }
+
+            return View(conta);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> FecharConta(int idMesa, string formaPagamento)
+        {
+            try
+            {
+                var conta = await _mesaService.GetContaMesaAsync(idMesa);
+                await _mesaService.FecharContaAsync(idMesa, formaPagamento);
+                TempData["Success"] = $"Conta da Mesa {conta?.MesaNumero} fechada com sucesso! Total: R$ {conta?.ValorTotal:F2}";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Erro ao fechar conta: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(Contas));
         }
     }
 }

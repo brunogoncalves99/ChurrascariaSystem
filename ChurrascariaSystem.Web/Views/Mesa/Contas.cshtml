@@ -1,0 +1,221 @@
+@model IEnumerable<ContaMesaDTO>
+@{
+    ViewData["Title"] = "Contas Abertas";
+}
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-cash-register text-success"></i> Contas Abertas</h2>
+        <p class="text-muted">Visualize e gerencie as contas das mesas</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="@Url.Action("Gerenciar")" class="btn btn-secondary">
+            <i class="fas fa-table"></i> Gerenciar Mesas
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="card shadow">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-primary">@Model.Count()</h4>
+                            <small class="text-muted">Mesas com Conta</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-success">R$ @Model.Sum(c => c.ValorTotal).ToString("N2")</h4>
+                            <small class="text-muted">Total em Aberto</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-warning">@Model.Where(c => c.PossuiPedidosAbertos).Count()</h4>
+                            <small class="text-muted">Pedidos Não Finalizados</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-info">@Model.Where(c => !c.PossuiPedidosAbertos).Count()</h4>
+                            <small class="text-muted">Aguardando Pagamento</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info text-center">
+        <i class="fas fa-info-circle fa-3x mb-3"></i>
+        <h4>Nenhuma conta aberta</h4>
+        <p>Não há mesas com contas em aberto no momento.</p>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var conta in Model)
+        {
+            var cardColor = conta.PossuiPedidosAbertos ? "border-warning" : "border-success";
+            var statusColor = conta.PossuiPedidosAbertos ? "badge bg-warning" : "badge bg-success";
+            var statusText = conta.PossuiPedidosAbertos ? "Em Atendimento" : "Pronto para Pagamento";
+
+            <div class="col-md-4">
+                <div class="card shadow @cardColor" style="border-width: 3px;">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chair"></i> Mesa @conta.MesaNumero
+                            </h5>
+                            <span class="@statusColor">@statusText</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span><i class="fas fa-receipt"></i> Pedidos:</span>
+                                <strong>@conta.QuantidadePedidos</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2">
+                                <span><i class="fas fa-clock"></i> Primeiro pedido:</span>
+                                <strong>@conta.PrimeiroPedido?.ToString("HH:mm")</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2">
+                                <span><i class="fas fa-history"></i> Último pedido:</span>
+                                <strong>@conta.UltimoPedido?.ToString("HH:mm")</strong>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="text-center mb-3">
+                            <h3 class="text-success mb-0">R$ @conta.ValorTotal.ToString("N2")</h3>
+                            <small class="text-muted">Total da Conta</small>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <a href="@Url.Action("DetalheConta", new { id = conta.idMesa })" 
+                               class="btn btn-primary">
+                                <i class="fas fa-eye"></i> Ver Detalhes
+                            </a>
+                            
+                            @if (!conta.PossuiPedidosAbertos)
+                            {
+                                <button type="button" class="btn btn-success" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#fecharContaModal"
+                                        onclick="prepararFecharConta(@conta.idMesa, '@conta.MesaNumero', @conta.ValorTotal.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))">
+                                    <i class="fas fa-cash-register"></i> Fechar Conta
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-secondary" disabled>
+                                    <i class="fas fa-hourglass-half"></i> Pedidos Pendentes
+                                </button>
+                            }
+                        </div>
+                    </div>
+                    @if (conta.PossuiPedidosAbertos)
+                    {
+                        <div class="card-footer bg-warning text-dark">
+                            <small>
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Aguarde todos os pedidos serem entregues
+                            </small>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<div class="modal fade" id="fecharContaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-cash-register"></i> Fechar Conta
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="FecharConta" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="idMesa" id="modalMesaId" />
+                
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-chair"></i> Mesa: <span id="modalMesaNumero"></span></h5>
+                        <h4 class="mt-3"><i class="fas fa-dollar-sign"></i> Total: R$ <span id="modalValorTotal"></span></h4>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Forma de Pagamento *</label>
+                        <select name="formaPagamento" class="form-select form-select-lg" required>
+                            <option value="">Selecione...</option>
+                            <option value="Dinheiro">💵 Dinheiro</option>
+                            <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
+                            <option value="Cartão de Débito">💳 Cartão de Débito</option>
+                            <option value="PIX">📱 PIX</option>
+                            <option value="Vale Refeição">🎫 Vale Refeição</option>
+                            <option value="Outros">💰 Outros</option>
+                        </select>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Atenção:</strong> Esta ação não pode ser desfeita!
+                        A mesa será liberada após o fechamento da conta.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-check"></i> Confirmar Pagamento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function prepararFecharConta(mesaId, mesaNumero, valorTotal) {
+            $('#modalMesaId').val(idMesa);
+            $('#modalMesaNumero').text(mesaNumero);
+            $('#modalValorTotal').text(parseFloat(valorTotal).toFixed(2).replace('.', ','));
+        }
+
+        // Auto-hide alerts após 5 segundos
+        setTimeout(function() {
+            $('.alert-dismissible').fadeOut('slow');
+        }, 5000);
+    </script>
+}

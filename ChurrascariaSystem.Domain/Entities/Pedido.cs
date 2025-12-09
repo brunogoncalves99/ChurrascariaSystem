@@ -8,11 +8,13 @@ namespace ChurrascariaSystem.Domain.Entities
         public int idMesa { get; set; }
         public int idUsuario { get; set; }
         public DateTime DataPedido { get; set; } = DateTime.Now;
-        public string StatusPedidoValor { get; set; } = "Aberto"; // Armazena o valor do StatusPedido
+        public string StatusPedidoValor { get; set; } = "Aberto"; 
         public decimal ValorTotal { get; set; }
         public string? Observacao { get; set; }
+        public bool Pago { get; set; } = false; 
+        public DateTime? DataPagamento { get; set; } 
+        public string? FormaPagamento { get; set; } 
 
-        // Propriedade de navegação 
         public Mesa Mesa { get; set; } = null!;
         public Usuario Usuario { get; set; } = null!;
         public ICollection<ItemPedido> Itens { get; set; } = new List<ItemPedido>();

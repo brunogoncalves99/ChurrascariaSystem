@@ -47,6 +47,11 @@ namespace ChurrascariaSystem.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Pedido>> GetPedidosByMesaIdAsync(int mesaId)
+        {
+            return await GetByMesaAsync(mesaId);
+        }
+
         public async Task<IEnumerable<Pedido>> GetByDataAsync(DateTime data)
         {
             var dataInicio = data.Date;
@@ -68,7 +73,9 @@ namespace ChurrascariaSystem.Infrastructure.Repositories
                 .Include(p => p.Usuario)
                 .Include(p => p.Itens)
                     .ThenInclude(i => i.Produto)
-                .Where(p => p.StatusPedidoValor == "Aberto" || p.StatusPedidoValor == "Em Preparação" || p.StatusPedidoValor == "Pronto")
+                .Where(p => p.StatusPedidoValor == "Aberto" ||
+                           p.StatusPedidoValor == "Em Preparação" ||
+                           p.StatusPedidoValor == "Pronto")
                 .OrderBy(p => p.DataPedido)
                 .ToListAsync();
         }

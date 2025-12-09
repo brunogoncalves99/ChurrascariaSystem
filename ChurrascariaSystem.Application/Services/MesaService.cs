@@ -9,10 +9,11 @@ namespace ChurrascariaSystem.Application.Services
     public class MesaService : IMesaService
     {
         private readonly IMesaRepository _mesaRepository;
-
-        public MesaService(IMesaRepository mesaRepository)
+        private readonly IPedidoRepository _pedidoRepository;
+        public MesaService(IMesaRepository mesaRepository, IPedidoRepository pedidoRepository)
         {
             _mesaRepository = mesaRepository;
+            _pedidoRepository = pedidoRepository;
         }
 
         public async Task<MesaDTO?> GetByIdAsync(int id)
@@ -84,6 +85,83 @@ namespace ChurrascariaSystem.Application.Services
             await _mesaRepository.DeleteAsync(id);
         }
 
+        public async Task<IEnumerable<ContaMesaDTO>> GetContasAbertasAsync()
+        {
+            var mesas = await _mesaRepository.GetAllActiveAsync();
+            var contas = new List<ContaMesaDTO>();
+
+            foreach (var mesa in mesas)
+            {
+                var pedidos = await _pedidoRepository.GetPedidosByMesaIdAsync(mesa.idMesa);
+                var pedidosNaoPagos = pedidos.Where(p => !p.Pago).ToList();
+
+                if (pedidosNaoPagos.Any())
+                {
+                    var conta = new ContaMesaDTO
+                    {
+                        idMesa = mesa.idMesa,
+                        MesaNumero = mesa.Numero,
+                        QuantidadePedidos = pedidosNaoPagos.Count,
+                        ValorTotal = pedidosNaoPagos.Sum(p => p.ValorTotal),
+                        Pedidos = pedidosNaoPagos.Select(MapPedidoToDTO).ToList(),
+                        PrimeiroPedido = pedidosNaoPagos.Min(p => p.DataPedido),
+                        UltimoPedido = pedidosNaoPagos.Max(p => p.DataPedido),
+                        PossuiPedidosAbertos = pedidosNaoPagos.Any(p => p.StatusPedidoValor != "Entregue"),
+                        Status = pedidosNaoPagos.Any(p => p.StatusPedidoValor != "Entregue") ? "Ocupada" : "AguardandoPagamento"
+                    };
+                    contas.Add(conta);
+                }
+            }
+
+            return contas.OrderBy(c => c.MesaNumero);
+        }
+
+        public async Task<ContaMesaDTO?> GetContaMesaAsync(int mesaId)
+        {
+            var mesa = await _mesaRepository.GetByIdAsync(mesaId);
+            if (mesa == null) return null;
+
+            var pedidos = await _pedidoRepository.GetPedidosByMesaIdAsync(mesaId);
+            var pedidosNaoPagos = pedidos.Where(p => !p.Pago).ToList();
+
+            if (!pedidosNaoPagos.Any()) return null;
+
+            return new ContaMesaDTO
+            {
+                idMesa = mesa.idMesa,
+                MesaNumero = mesa.Numero,
+                QuantidadePedidos = pedidosNaoPagos.Count,
+                ValorTotal = pedidosNaoPagos.Sum(p => p.ValorTotal),
+                Pedidos = pedidosNaoPagos.Select(MapPedidoToDTO).ToList(),
+                PrimeiroPedido = pedidosNaoPagos.Min(p => p.DataPedido),
+                UltimoPedido = pedidosNaoPagos.Max(p => p.DataPedido),
+                PossuiPedidosAbertos = pedidosNaoPagos.Any(p => p.StatusPedidoValor != "Entregue"),
+                Status = pedidosNaoPagos.Any(p => p.StatusPedidoValor != "Entregue") ? "Ocupada" : "AguardandoPagamento"
+            };
+        }
+
+        public async Task FecharContaAsync(int mesaId, string formaPagamento)
+        {
+            var pedidos = await _pedidoRepository.GetPedidosByMesaIdAsync(mesaId);
+            var pedidosNaoPagos = pedidos.Where(p => !p.Pago).ToList();
+
+            foreach (var pedido in pedidosNaoPagos)
+            {
+                pedido.Pago = true;
+                pedido.DataPagamento = DateTime.Now;
+                pedido.FormaPagamento = formaPagamento;
+                await _pedidoRepository.UpdateAsync(pedido);
+            }
+
+            // Atualizar status da mesa para Livre
+            var mesa = await _mesaRepository.GetByIdAsync(mesaId);
+            if (mesa != null)
+            {
+                mesa.Status = StatusMesa.Livre;
+                await _mesaRepository.UpdateAsync(mesa);
+            }
+        }
+
         private MesaDTO MapToDTO(Mesa mesa)
         {
             return new MesaDTO
@@ -94,6 +172,35 @@ namespace ChurrascariaSystem.Application.Services
                 Status = mesa.Status,
                 StatusDescricao = mesa.Status.ToString(),
                 Ativo = mesa.Ativo
+            };
+        }
+
+        private PedidoDTO MapPedidoToDTO(Pedido pedido)
+        {
+            return new PedidoDTO
+            {
+                idPedido = pedido.idPedido,
+                idMesa = pedido.idMesa,
+                MesaNumero = pedido.Mesa?.Numero,
+                idUsuario = pedido.idUsuario,
+                NomeUsuario = pedido.Usuario?.Nome,
+                DataPedido = pedido.DataPedido,
+                Status = pedido.StatusPedidoValor,
+                ValorTotal = pedido.ValorTotal,
+                Observacao = pedido.Observacao,
+                Pago = pedido.Pago,
+                DataPagamento = pedido.DataPagamento,
+                FormaPagamento = pedido.FormaPagamento,
+                Itens = pedido.Itens.Select(i => new ItemPedidoDTO
+                {
+                    idItemPedido = i.idItemPedido,
+                    idProduto = i.idProduto,
+                    ProdutoNome = i.Produto?.Nome,
+                    Quantidade = i.Quantidade,
+                    PrecoUnitario = i.PrecoUnitario,
+                    Subtotal = i.Subtotal,
+                    Observacao = i.Observacao
+                }).ToList()
             };
         }
     }

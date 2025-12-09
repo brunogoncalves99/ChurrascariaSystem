@@ -117,9 +117,10 @@
 
         // Adicionar produto ao carrinho
         $('.btn-adicionar').click(function() {
+            debugger;
             const btn = $(this);
             const input = btn.closest('.input-group').find('.quantidade');
-            const idProduto = parseInt(btn.data('idProduto'));
+            const idProduto = parseInt(btn.data('id'));
             const quantidade = parseInt(input.val());
             const nome = input.data('nome');
             const preco = parseFloat(input.data('preco'));
@@ -147,6 +148,7 @@
         });
 
         function atualizarCarrinho() {
+            debugger;
             const container = $('#carrinhoItens');
             container.empty();
 
@@ -204,8 +206,9 @@
         $('#btnFinalizar').click(function() {
             if (!confirm('Confirmar pedido?')) return;
 
+            debugger;
             const pedido = {
-                mesaId: parseInt(mesaSelecionada),
+                idMesa: parseInt(mesaSelecionada),
                 observacao: $('#observacao').val(),
                 itens: carrinho.map(item => ({
                     idProduto: item.idProduto,

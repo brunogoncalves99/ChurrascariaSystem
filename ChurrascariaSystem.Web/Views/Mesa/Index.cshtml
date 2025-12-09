@@ -98,7 +98,6 @@
     }
 </div>
 
-<!-- Modal Criar Mesa -->
 <div class="modal fade" id="createModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -109,6 +108,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Número da Mesa *</label>
@@ -134,7 +134,6 @@
     </div>
 </div>
 
-<!-- Modal Editar Mesa -->
 <div class="modal fade" id="editModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -145,6 +144,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form asp-action="Edit" method="post" id="editForm">
+                @Html.AntiForgeryToken()
                 <input type="hidden" name="Id" id="editId" />
                 <div class="modal-body">
                     <div class="mb-3">
@@ -171,7 +171,6 @@
     </div>
 </div>
 
-<!-- Modal Excluir -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -200,7 +199,6 @@
 
 @section Scripts {
     <script>
-        // Editar mesa
         $('.btn-edit').click(function() {
             const id = $(this).data('id');
             const numero = $(this).data('numero');
@@ -215,7 +213,6 @@
             $('#editModal').modal('show');
         });
 
-        // Excluir mesa
         $('.btn-delete').click(function() {
             const id = $(this).data('id');
             const numero = $(this).data('numero');

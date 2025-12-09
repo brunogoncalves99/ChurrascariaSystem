@@ -7,6 +7,7 @@ namespace ChurrascariaSystem.Domain.Interfaces
         Task<Pedido?> GetByIdAsync(int id);
         Task<IEnumerable<Pedido>> GetAllAsync();
         Task<IEnumerable<Pedido>> GetByMesaAsync(int mesaId);
+        Task<IEnumerable<Pedido>> GetPedidosByMesaIdAsync(int mesaId);
         Task<IEnumerable<Pedido>> GetByDataAsync(DateTime data);
         Task<IEnumerable<Pedido>> GetPedidosAbertosAsync();
         Task<IEnumerable<Pedido>> GetPedidosByPeriodoAsync(DateTime dataInicio, DateTime dataFim);
