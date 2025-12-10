@@ -51,6 +51,20 @@ namespace ChurrascariaSystem.Application.Services
 
         public async Task<PedidoDTO> CreateAsync(PedidoDTO pedidoDto)
         {
+            foreach (var itemDto in pedidoDto.Itens)
+            {
+                var produto = await _produtoRepository.GetByIdAsync(itemDto.idProduto);
+                if (produto == null)
+                    throw new Exception($"Produto ID {itemDto.idProduto} não encontrado");
+
+                var temEstoque = await _estoqueService.VerificarEstoqueDisponivel(itemDto.idProduto, itemDto.Quantidade);
+
+                if (!temEstoque)
+                {
+                    throw new Exception($"Estoque insuficiente para {produto.Nome}. " + $"Necessário: {itemDto.Quantidade}");
+                }
+            }
+
             var pedido = new Pedido
             {
                 idMesa = pedidoDto.idMesa,
@@ -62,21 +76,7 @@ namespace ChurrascariaSystem.Application.Services
 
             foreach (var itemDto in pedidoDto.Itens)
             {
-                // Verificar estoque disponível
-                var temEstoque = await _estoqueService.VerificarEstoqueDisponivel(itemDto.idProduto, itemDto.Quantidade);
-
-                if (!temEstoque)
-                {
-                    throw new Exception("Estoque insuficiente");
-                }
-
-
                 var produto = await _produtoRepository.GetByIdAsync(itemDto.idProduto);
-                if (produto == null) 
-                    continue;
-
-                // Dar baixa no estoque
-                await _estoqueService.DarBaixaAsync(itemDto.idProduto, itemDto.Quantidade, itemDto.idPedido, pedidoDto.idUsuario);
 
                 var item = new ItemPedido
                 {
@@ -90,7 +90,21 @@ namespace ChurrascariaSystem.Application.Services
                 pedido.Itens.Add(item);
             }
 
-            // Atualizar status da mesa para Ocupado para não deixar reservar uma mesa que já tem pedido
+            pedido.CalcularValorTotal();
+            await _pedidoRepository.AddAsync(pedido);
+
+            try
+            {
+                foreach (var item in pedido.Itens)
+                {
+                    await _estoqueService.DarBaixaAsync(produtoId: item.idProduto, quantidade: item.Quantidade, pedidoId: pedido.idPedido, usuarioId: pedidoDto.idUsuario);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Pedido criado (id: {pedido.idPedido}) mas falhou ao dar baixa no estoque: {ex.Message}", ex);
+            }
+
             var mesa = await _mesaRepository.GetByIdAsync(pedidoDto.idMesa);
             if (mesa != null)
             {
@@ -98,8 +112,6 @@ namespace ChurrascariaSystem.Application.Services
                 await _mesaRepository.UpdateAsync(mesa);
             }
 
-            pedido.CalcularValorTotal();
-            await _pedidoRepository.AddAsync(pedido);
             return MapToDTO(pedido);
         }
 

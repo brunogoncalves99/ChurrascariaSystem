@@ -46,7 +46,7 @@ namespace ChurrascariaSystem.Application.Services
 
                     page.Header().Column(column =>
                     {
-                        column.Item().AlignCenter().Text("🍖 Sistema de Churrasquinho")
+                        column.Item().AlignCenter().Text("🍖 Churrasquinho Araxá")
                             .FontSize(20)
                             .Bold()
                             .FontColor(Colors.Red.Medium);
@@ -84,10 +84,10 @@ namespace ChurrascariaSystem.Application.Services
                             // Define colunas
                             table.ColumnsDefinition(columns =>
                             {
-                                columns.RelativeColumn(3); // Produto
-                                columns.ConstantColumn(60); // Qtd
-                                columns.ConstantColumn(80); // Preço Unit
-                                columns.ConstantColumn(100); // Subtotal
+                                columns.RelativeColumn(3); 
+                                columns.ConstantColumn(60); 
+                                columns.ConstantColumn(80); 
+                                columns.ConstantColumn(100); 
                             });
 
                             // Header da tabela
@@ -190,7 +190,7 @@ namespace ChurrascariaSystem.Application.Services
                     // Header
                     page.Header().Column(column =>
                     {
-                        column.Item().AlignCenter().Text("🍖 Sistema de Churrasquinho")
+                        column.Item().AlignCenter().Text("🍖 Churrasquinho Araxá")
                             .FontSize(20)
                             .Bold()
                             .FontColor(Colors.Red.Medium);
@@ -246,12 +246,12 @@ namespace ChurrascariaSystem.Application.Services
                             {
                                 table.ColumnsDefinition(columns =>
                                 {
-                                    columns.ConstantColumn(60);  // Pedido
-                                    columns.ConstantColumn(80);  // Hora
-                                    columns.ConstantColumn(70);  // Mesa
-                                    columns.RelativeColumn();    // Garçom
-                                    columns.ConstantColumn(100); // Forma Pgto
-                                    columns.ConstantColumn(90);  // Valor
+                                    columns.ConstantColumn(60);  
+                                    columns.ConstantColumn(80);  
+                                    columns.ConstantColumn(70);  
+                                    columns.RelativeColumn();    
+                                    columns.ConstantColumn(100); 
+                                    columns.ConstantColumn(90);  
                                 });
 
                                 // Header
@@ -349,7 +349,7 @@ namespace ChurrascariaSystem.Application.Services
                     // Header
                     page.Header().Column(column =>
                     {
-                        column.Item().AlignCenter().Text("🍖 Sistema de Churrasquinho")
+                        column.Item().AlignCenter().Text("🍖 Churrasquinho Araxá")
                             .FontSize(20)
                             .Bold()
                             .FontColor(Colors.Red.Medium);
@@ -497,7 +497,7 @@ namespace ChurrascariaSystem.Application.Services
                     // Header
                     page.Header().Column(column =>
                     {
-                        column.Item().AlignCenter().Text("🍖 Sistema de Churrasquinho")
+                        column.Item().AlignCenter().Text("🍖 Churrasquinho Araxá")
                             .FontSize(20)
                             .Bold()
                             .FontColor(Colors.Red.Medium);
@@ -652,7 +652,7 @@ namespace ChurrascariaSystem.Application.Services
                     // Header
                     page.Header().Column(column =>
                     {
-                        column.Item().AlignCenter().Text("🍖 Sistema de Churrasquinho")
+                        column.Item().AlignCenter().Text("🍖 Churrasquinho Araxá")
                             .FontSize(20)
                             .Bold()
                             .FontColor(Colors.Red.Medium);
@@ -796,7 +796,7 @@ namespace ChurrascariaSystem.Application.Services
                     // Header
                     page.Header().Column(column =>
                     {
-                        column.Item().AlignCenter().Text("🍖 Sistema de Churrasquinho")
+                        column.Item().AlignCenter().Text("🍖 Churrasquinho Araxá")
                             .FontSize(20)
                             .Bold()
                             .FontColor(Colors.Red.Medium);
