@@ -4,7 +4,6 @@
 }
 
 <div class="container-fluid mt-4">
-    <!-- Header -->
     <div class="row mb-4">
         <div class="col-md-8">
             <h2><i class="fas fa-boxes"></i> Gerenciamento de Estoque</h2>
@@ -26,7 +25,6 @@
         </div>
     </div>
 
-    <!-- Cards de Resumo -->
     <div class="row mb-4">
         <div class="col-md-3">
             <div class="card bg-primary text-white">
@@ -62,7 +60,6 @@
         </div>
     </div>
 
-    <!-- Mensagens -->
     @if (TempData["Sucesso"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -78,7 +75,6 @@
         </div>
     }
 
-    <!-- Tabela de Estoque -->
     <div class="card">
         <div class="card-header bg-dark text-white">
             <h5 class="mb-0"><i class="fas fa-list"></i> Lista de Produtos em Estoque</h5>
@@ -260,7 +256,6 @@
     </div>
 </div>
 
-<!-- Modal Ajustar Estoque -->
 <div class="modal fade" id="modalAjuste" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -301,7 +296,6 @@
     </div>
 </div>
 
-<!-- Modal Histórico -->
 <div class="modal fade" id="modalHistorico" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -375,7 +369,6 @@
 
 @section Scripts {
     <script>
-        // Criar novo estoque
         function criarEstoque() {
             const idProduto = $('#criarProdutoId').val();
             const quantidade = $('#criarQuantidade').val();
@@ -411,7 +404,6 @@
             });
         }
 
-        // Abrir modal de entrada
         function abrirModalEntrada(idProduto, produtoNome, quantidadeAtual) {
             $('#entradaProdutoId').val(idProduto);
             $('#entradaProdutoNome').text(produtoNome);
@@ -422,7 +414,6 @@
             $('#modalEntrada').modal('show');
         }
 
-        // Dar entrada
         function darEntrada() {
             const data = {
                 idProduto: parseInt($('#entradaProdutoId').val()),
@@ -450,7 +441,6 @@
             });
         }
 
-        // Abrir modal de ajuste
         function abrirModalAjuste(idProduto, produtoNome, quantidadeAtual) {
             $('#ajusteProdutoId').val(idProduto);
             $('#ajusteProdutoNome').text(produtoNome);
@@ -460,7 +450,6 @@
             $('#modalAjuste').modal('show');
         }
 
-        // Ajustar estoque
         function ajustarEstoque() {
             const data = {
                 idProduto: parseInt($('#ajusteProdutoId').val()),
@@ -487,7 +476,6 @@
             });
         }
 
-        // Abrir modal de histórico
         function abrirModalHistorico(idProduto, produtoNome) {
             $('#historicoProdutoNome').text('Produto: ' + produtoNome);
             $('#historicoTabela').html('<tr><td colspan="7" class="text-center"><div class="spinner-border" role="status"></div></td></tr>');
@@ -530,7 +518,6 @@
             });
         }
 
-        // Abrir modal de configuração
         function abrirModalConfig(estoqueId, idProduto, produtoNome, quantidadeMinima) {
             $('#configEstoqueId').val(estoqueId);
             $('#configProdutoId').val(idProduto);
@@ -539,7 +526,6 @@
             $('#modalConfig').modal('show');
         }
 
-        // Salvar configuração
         function salvarConfiguracao() {
             const data = {
                 id: parseInt($('#configEstoqueId').val()),
@@ -566,7 +552,6 @@
             });
         }
 
-        // Auto-hide alerts
         setTimeout(function() {
             $('.alert').fadeOut('slow');
         }, 5000);
