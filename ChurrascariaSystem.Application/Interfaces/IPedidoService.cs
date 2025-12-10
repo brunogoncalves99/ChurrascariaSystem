@@ -13,5 +13,6 @@ namespace ChurrascariaSystem.Application.Interfaces
         Task UpdateStatusAsync(int id, string status);
         Task DeleteAsync(int id);
         Task<decimal> GetValorTotalMesaAsync(int mesaId);
+        Task<IEnumerable<PedidoDTO>> GetHistoricoAsync(HistoricoPedidoFiltroDTO filtros);
     }
 }

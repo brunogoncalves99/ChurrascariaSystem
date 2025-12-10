@@ -1,6 +1,7 @@
 ﻿using ChurrascariaSystem.Application.DTOs;
 using ChurrascariaSystem.Application.Interfaces;
 using ChurrascariaSystem.Domain.Entities;
+using ChurrascariaSystem.Domain.Enums;
 using ChurrascariaSystem.Domain.Interfaces;
 using ChurrascariaSystem.Domain.ValueObjects;
 
@@ -10,11 +11,13 @@ namespace ChurrascariaSystem.Application.Services
     {
         private readonly IPedidoRepository _pedidoRepository;
         private readonly IProdutoRepository _produtoRepository;
+        private readonly IMesaRepository _mesaRepository;
 
-        public PedidoService(IPedidoRepository pedidoRepository, IProdutoRepository produtoRepository)
+        public PedidoService(IPedidoRepository pedidoRepository, IProdutoRepository produtoRepository, IMesaRepository mesaRepository)
         {
             _pedidoRepository = pedidoRepository;
             _produtoRepository = produtoRepository;
+            _mesaRepository = mesaRepository;
         }
 
         public async Task<PedidoDTO?> GetByIdAsync(int id)
@@ -52,7 +55,6 @@ namespace ChurrascariaSystem.Application.Services
                 Observacao = pedidoDto.Observacao
             };
 
-            // Adiciona os itens do pedido
             foreach (var itemDto in pedidoDto.Itens)
             {
                 var produto = await _produtoRepository.GetByIdAsync(itemDto.idProduto);
@@ -67,6 +69,14 @@ namespace ChurrascariaSystem.Application.Services
                 };
                 item.CalcularSubtotal();
                 pedido.Itens.Add(item);
+            }
+
+            // Atualizar status da mesa para Ocupado para não deixar reservar uma mesa que já está ocupada
+            var mesa = await _mesaRepository.GetByIdAsync(pedidoDto.idMesa);
+            if (mesa != null)
+            {
+                mesa.Status = StatusMesa.Ocupada;
+                await _mesaRepository.UpdateAsync(mesa);
             }
 
             pedido.CalcularValorTotal();
@@ -104,6 +114,54 @@ namespace ChurrascariaSystem.Application.Services
             var pedidos = await _pedidoRepository.GetByMesaAsync(mesaId);
             var pedidosAbertos = pedidos.Where(p => p.StatusPedidoValor == "Aberto" || p.StatusPedidoValor == "Em Preparação" || p.StatusPedidoValor == "Pronto");
             return pedidosAbertos.Sum(p => p.ValorTotal);
+        }
+
+        public async Task<IEnumerable<PedidoDTO>> GetHistoricoAsync(HistoricoPedidoFiltroDTO filtros)
+        {
+            var pedidos = await _pedidoRepository.GetAllAsync();
+            var query = pedidos.AsQueryable();
+
+            if (filtros.DataInicio.HasValue)
+            {
+                query = query.Where(p => p.DataPedido.Date >= filtros.DataInicio.Value.Date);
+            }
+
+            if (filtros.DataFim.HasValue)
+            {
+                query = query.Where(p => p.DataPedido.Date <= filtros.DataFim.Value.Date);
+            }
+
+            if (!string.IsNullOrEmpty(filtros.Status))
+            {
+                query = query.Where(p => p.StatusPedidoValor == filtros.Status);
+            }
+
+            if (filtros.idMesa.HasValue)
+            {
+                query = query.Where(p => p.idMesa == filtros.idMesa.Value);
+            }
+
+            if (filtros.idUsuario.HasValue)
+            {
+                query = query.Where(p => p.idUsuario == filtros.idUsuario.Value);
+            }
+
+            if (!string.IsNullOrEmpty(filtros.FormaPagamento))
+            {
+                query = query.Where(p => p.FormaPagamento == filtros.FormaPagamento);
+            }
+
+            if (filtros.ApenasPagos.HasValue && filtros.ApenasPagos.Value)
+            {
+                query = query.Where(p => p.Pago);
+            }
+
+            if (filtros.ApenasNaoPagos.HasValue && filtros.ApenasNaoPagos.Value)
+            {
+                query = query.Where(p => !p.Pago);
+            }
+
+            return query.OrderByDescending(p => p.DataPedido).Select(MapToDTO);
         }
 
         private PedidoDTO MapToDTO(Pedido pedido)

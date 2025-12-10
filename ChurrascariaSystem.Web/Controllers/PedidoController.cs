@@ -51,7 +51,6 @@ namespace ChurrascariaSystem.Web.Controllers
 
             try
             {
-                // Pega o ID do usuário logado
                 var usuarioId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 pedidoDto.idUsuario = int.Parse(usuarioId!);
 
@@ -102,6 +101,34 @@ namespace ChurrascariaSystem.Web.Controllers
         {
             var valorTotal = await _pedidoService.GetValorTotalMesaAsync(mesaId);
             return Json(new { valorTotal });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Historico()
+        {
+            ViewBag.Mesas = await _mesaService.GetAllAsync();
+            ViewBag.Usuarios = await _pedidoService.GetAllAsync(); 
+
+            var filtros = new HistoricoPedidoFiltroDTO
+            {
+                DataInicio = DateTime.Today.AddDays(-30),
+                DataFim = DateTime.Today
+            };
+
+            var pedidos = await _pedidoService.GetHistoricoAsync(filtros);
+            ViewBag.Filtros = filtros;
+            return View(pedidos);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Historico(HistoricoPedidoFiltroDTO filtros)
+        {
+            ViewBag.Mesas = await _mesaService.GetAllAsync();
+            ViewBag.Usuarios = await _pedidoService.GetAllAsync();
+
+            var pedidos = await _pedidoService.GetHistoricoAsync(filtros);
+            ViewBag.Filtros = filtros;
+            return View(pedidos);
         }
     }
 }

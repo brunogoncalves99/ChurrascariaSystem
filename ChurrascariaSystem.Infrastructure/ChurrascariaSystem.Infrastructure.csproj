@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ChurrascariaSystem.Application\ChurrascariaSystem.Application.csproj" />
     <ProjectReference Include="..\ChurrascariaSystem.Domain\ChurrascariaSystem.Domain.csproj" />
   </ItemGroup>
 

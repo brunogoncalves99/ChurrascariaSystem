@@ -207,7 +207,7 @@ else
 
 @section Scripts {
     <script>
-        function prepararFecharConta(mesaId, mesaNumero, valorTotal) {
+        function prepararFecharConta(idMesa, mesaNumero, valorTotal) {
             $('#modalMesaId').val(idMesa);
             $('#modalMesaNumero').text(mesaNumero);
             $('#modalValorTotal').text(parseFloat(valorTotal).toFixed(2).replace('.', ','));

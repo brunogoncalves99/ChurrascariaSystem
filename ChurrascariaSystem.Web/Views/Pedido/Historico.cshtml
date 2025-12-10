@@ -1,0 +1,270 @@
+﻿@model IEnumerable<PedidoDTO>
+@{
+    ViewData["Title"] = "Histórico de Pedidos";
+    var filtros = ViewBag.Filtros as HistoricoPedidoFiltroDTO;
+    var mesas = ViewBag.Mesas as IEnumerable<MesaDTO>;
+}
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2><i class="fas fa-history text-primary"></i> Histórico de Pedidos</h2>
+        <p class="text-muted">Consulte e filtre todos os pedidos realizados</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="@Url.Action("Index")" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card shadow mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-filter"></i> Filtros de Busca</h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="Historico" method="post">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">Data Início</label>
+                        <input type="date" name="DataInicio" class="form-control"
+                               value="@filtros?.DataInicio?.ToString("yyyy-MM-dd")" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">Data Fim</label>
+                        <input type="date" name="DataFim" class="form-control"
+                               value="@filtros?.DataFim?.ToString("yyyy-MM-dd")" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select name="Status" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="Aberto" selected="@(filtros?.Status == "Aberto")">Aberto</option>
+                            <option value="Em Preparação" selected="@(filtros?.Status == "Em Preparação")">Em Preparação</option>
+                            <option value="Pronto" selected="@(filtros?.Status == "Pronto")">Pronto</option>
+                            <option value="Entregue" selected="@(filtros?.Status == "Entregue")">Entregue</option>
+                            <option value="Cancelado" selected="@(filtros?.Status == "Cancelado")">Cancelado</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">Mesa</label>
+                        <select name="MesaId" class="form-select">
+                            <option value="">Todas</option>
+                            @if (mesas != null)
+                            {
+                                @foreach (var mesa in mesas.OrderBy(m => m.Numero))
+                                {
+                                    <option value="@mesa.idMesa" selected="@(filtros?.idMesa == mesa.idMesa)">Mesa @mesa.Numero</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">Forma de Pagamento</label>
+                        <select name="FormaPagamento" class="form-select">
+                            <option value="">Todas</option>
+                            <option value="Dinheiro" selected="@(filtros?.FormaPagamento == "Dinheiro")">Dinheiro</option>
+                            <option value="Cartão de Crédito" selected="@(filtros?.FormaPagamento == "Cartão de Crédito")">Cartão de Crédito</option>
+                            <option value="Cartão de Débito" selected="@(filtros?.FormaPagamento == "Cartão de Débito")">Cartão de Débito</option>
+                            <option value="PIX" selected="@(filtros?.FormaPagamento == "PIX")">PIX</option>
+                            <option value="Vale Refeição" selected="@(filtros?.FormaPagamento == "Vale Refeição")">Vale Refeição</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">Status de Pagamento</label>
+                        <select name="ApenasPagos" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="true" selected="@(filtros?.ApenasPagos == true)">Apenas Pagos</option>
+                            <option value="false">Apenas Não Pagos</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
+                    <div class="mb-3 w-100">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                        <a href="@Url.Action("Historico")" class="btn btn-secondary">
+                            <i class="fas fa-undo"></i> Limpar Filtros
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Estatísticas -->
+@if (Model.Any())
+{
+    var totalPedidos = Model.Count();
+    var totalFaturado = Model.Where(p => p.Pago).Sum(p => p.ValorTotal);
+    var totalAberto = Model.Where(p => !p.Pago).Sum(p => p.ValorTotal);
+    var pedidosPagos = Model.Count(p => p.Pago);
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-receipt fa-2x text-primary mb-2"></i>
+                    <h4 class="mb-0">@totalPedidos</h4>
+                    <small class="text-muted">Total de Pedidos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow border-success">
+                <div class="card-body text-center">
+                    <i class="fas fa-dollar-sign fa-2x text-success mb-2"></i>
+                    <h4 class="mb-0">R$ @totalFaturado.ToString("N2")</h4>
+                    <small class="text-muted">Total Faturado</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow border-warning">
+                <div class="card-body text-center">
+                    <i class="fas fa-hourglass-half fa-2x text-warning mb-2"></i>
+                    <h4 class="mb-0">R$ @totalAberto.ToString("N2")</h4>
+                    <small class="text-muted">Em Aberto</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-2x text-info mb-2"></i>
+                    <h4 class="mb-0">@pedidosPagos</h4>
+                    <small class="text-muted">Pedidos Pagos</small>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Lista de Pedidos -->
+@if (!Model.Any())
+{
+    <div class="alert alert-info text-center">
+        <i class="fas fa-info-circle fa-3x mb-3"></i>
+        <h4>Nenhum pedido encontrado</h4>
+        <p>Tente ajustar os filtros de busca.</p>
+    </div>
+}
+else
+{
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Pedido</th>
+                            <th>Data/Hora</th>
+                            <th>Mesa</th>
+                            <th>Garçom</th>
+                            <th>Status</th>
+                            <th class="text-end">Valor</th>
+                            <th class="text-center">Pagamento</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var pedido in Model)
+                        {
+                            var statusColor = pedido.Status switch
+                            {
+                                "Aberto" => "badge bg-info",
+                                "Em Preparação" => "badge bg-warning",
+                                "Pronto" => "badge bg-success",
+                                "Entregue" => "badge bg-primary",
+                                "Cancelado" => "badge bg-danger",
+                                _ => "badge bg-secondary"
+                            };
+
+                            <tr>
+                                <td><strong>#@pedido.idPedido</strong></td>
+                                <td>
+                                    @pedido.DataPedido.ToString("dd/MM/yyyy")<br>
+                                    <small class="text-muted">@pedido.DataPedido.ToString("HH:mm")</small>
+                                </td>
+                                <td>Mesa @pedido.MesaNumero</td>
+                                <td>@pedido.NomeUsuario</td>
+                                <td><span class="@statusColor">@pedido.Status</span></td>
+                                <td class="text-end"><strong>R$ @pedido.ValorTotal.ToString("N2")</strong></td>
+                                <td class="text-center">
+                                    @if (pedido.Pago)
+                                    {
+                                        <span class="badge bg-success" title="Pago em @pedido.DataPagamento?.ToString("dd/MM/yyyy HH:mm")">
+                                            <i class="fas fa-check"></i> @pedido.FormaPagamento
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-clock"></i> Pendente
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <a href="@Url.Action("Detalhes", new { idPedido = pedido.idPedido })"
+                                       class="btn btn-sm btn-primary"
+                                       title="Ver Detalhes">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <th colspan="5" class="text-end">TOTAIS:</th>
+                            <th class="text-end">R$ @Model.Sum(p => p.ValorTotal).ToString("N2")</th>
+                            <th colspan="2"></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#btnHoje').click(function() {
+                var hoje = new Date().toISOString().split('T')[0];
+                $('input[name="DataInicio"]').val(hoje);
+                $('input[name="DataFim"]').val(hoje);
+            });
+
+            $('#btnSemana').click(function() {
+                var hoje = new Date();
+                var primeiroDia = new Date(hoje.setDate(hoje.getDate() - hoje.getDay()));
+                $('input[name="DataInicio"]').val(primeiroDia.toISOString().split('T')[0]);
+                $('input[name="DataFim"]').val(new Date().toISOString().split('T')[0]);
+            });
+
+            $('#btnMes').click(function() {
+                var hoje = new Date();
+                var primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+                $('input[name="DataInicio"]').val(primeiroDia.toISOString().split('T')[0]);
+                $('input[name="DataFim"]').val(new Date().toISOString().split('T')[0]);
+            });
+        });
+    </script>
+}

@@ -119,7 +119,8 @@ namespace ChurrascariaSystem.Application.Services
         public async Task<ContaMesaDTO?> GetContaMesaAsync(int mesaId)
         {
             var mesa = await _mesaRepository.GetByIdAsync(mesaId);
-            if (mesa == null) return null;
+            if (mesa == null) 
+                return null;
 
             var pedidos = await _pedidoRepository.GetPedidosByMesaIdAsync(mesaId);
             var pedidosNaoPagos = pedidos.Where(p => !p.Pago).ToList();

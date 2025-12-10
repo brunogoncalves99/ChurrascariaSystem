@@ -10,13 +10,14 @@ namespace ChurrascariaSystem.Infrastructure.Data
         {
         }
 
-        // DbSets
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<TipoProduto> TiposProduto { get; set; }
         public DbSet<Produto> Produtos { get; set; }
         public DbSet<Mesa> Mesas { get; set; }
         public DbSet<Pedido> Pedidos { get; set; }
         public DbSet<ItemPedido> ItensPedido { get; set; }
+        public DbSet<Estoque> Estoques { get; set; }
+        public DbSet<MovimentacaoEstoque> MovimentacoesEstoque { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -28,6 +29,8 @@ namespace ChurrascariaSystem.Infrastructure.Data
             modelBuilder.ApplyConfiguration(new MesaConfiguration());
             modelBuilder.ApplyConfiguration(new PedidoConfiguration());
             modelBuilder.ApplyConfiguration(new ItemPedidoConfiguration());
+            modelBuilder.ApplyConfiguration(new EstoqueConfiguration());
+            modelBuilder.ApplyConfiguration(new MovimentacaoEstoqueConfiguration());
 
             // Seed de dados iniciais
             //SeedData(modelBuilder);

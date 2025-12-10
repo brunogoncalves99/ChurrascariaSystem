@@ -143,6 +143,12 @@ namespace ChurrascariaSystem.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> FecharConta(int idMesa, string formaPagamento)
         {
+            if (idMesa == 0)
+            {
+                TempData["Error"] = "Dados inválidos. Verifique os campos.";
+                return RedirectToAction(nameof(Index));
+            }
+
             try
             {
                 var conta = await _mesaService.GetContaMesaAsync(idMesa);
