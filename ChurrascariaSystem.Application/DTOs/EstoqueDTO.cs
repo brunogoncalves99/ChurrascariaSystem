@@ -45,8 +45,8 @@ namespace ChurrascariaSystem.Application.DTOs
         [Required(ErrorMessage = "Motivo é obrigatório")]
         public string Motivo { get; set; } = string.Empty; 
 
-        public int? PedidoId { get; set; }
-        public int? UsuarioId { get; set; }
+        public int? idPedido { get; set; }
+        public int? idUsuario { get; set; }
         public string? UsuarioNome { get; set; }
         public DateTime DataMovimentacao { get; set; } = DateTime.Now;
 
@@ -65,6 +65,7 @@ namespace ChurrascariaSystem.Application.DTOs
 
         [StringLength(500, ErrorMessage = "Observação deve ter no máximo 500 caracteres")]
         public string? Observacao { get; set; }
+        public string Motivo { get; set; } = string.Empty;
     }
 
 }

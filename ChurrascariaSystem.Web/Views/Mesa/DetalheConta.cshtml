@@ -15,7 +15,6 @@
     </div>
 </div>
 
-<!-- Resumo da Conta -->
 <div class="row mb-4">
     <div class="col-md-12">
         <div class="card shadow border-success" style="border-width: 3px;">
@@ -58,7 +57,6 @@
     </div>
 </div>
 
-<!-- Lista de Pedidos -->
 <div class="row">
     <div class="col-md-12">
         <h4 class="mb-3"><i class="fas fa-list"></i> Pedidos da Mesa</h4>
@@ -143,7 +141,6 @@
     </div>
 </div>
 
-<!-- Card Total -->
 <div class="row mt-4">
     <div class="col-md-12">
         <div class="card shadow border-success" style="border-width: 3px;">
@@ -153,11 +150,18 @@
                 
                 @if (!Model.PossuiPedidosAbertos)
                 {
-                    <button type="button" class="btn btn-success btn-lg" 
-                            data-bs-toggle="modal" 
-                            data-bs-target="#fecharContaModal">
-                        <i class="fas fa-cash-register"></i> Fechar Conta
-                    </button>
+                   <div class="d-grid gap-2">
+                       <button type="button" class="btn btn-success btn-lg"
+                               onclick="prepararFecharConta(@Model.idMesa, '@Model.MesaNumero', @Model.ValorTotal)">
+                           <i class="fas fa-check"></i> Fechar Conta
+                       </button>
+
+                       <a href="@Url.Action("ContaCliente", "Relatorio", new { idMesa = Model.idMesa })"
+                          class="btn btn-danger"
+                          target="_blank">
+                           <i class="fas fa-file-pdf"></i> Gerar PDF da Mesa @Model.MesaNumero
+                       </a>
+                   </div>
                 }
                 else
                 {
@@ -171,7 +175,6 @@
     </div>
 </div>
 
-<!-- Modal Fechar Conta -->
 <div class="modal fade" id="fecharContaModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -186,7 +189,6 @@
                 <input type="hidden" name="mesaId" value="@Model.idMesa" />
                 
                 <div class="modal-body">
-                    <!-- Resumo dos Itens -->
                     <div class="mb-4">
                         <h5><i class="fas fa-list"></i> Resumo dos Itens</h5>
                         <table class="table table-sm">
@@ -228,7 +230,6 @@
                         </table>
                     </div>
 
-                    <!-- Forma de Pagamento -->
                     <div class="mb-3">
                         <label class="form-label">Forma de Pagamento *</label>
                         <select name="formaPagamento" class="form-select form-select-lg" required>
@@ -263,7 +264,6 @@
 
 @section Scripts {
     <script>
-        // Imprimir conta
         function imprimirConta() {
             window.print();
         }

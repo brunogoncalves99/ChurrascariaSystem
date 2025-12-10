@@ -14,12 +14,11 @@ namespace ChurrascariaSystem.Application.DTOs
         public string? Descricao { get; set; }
 
         [Required(ErrorMessage = "Preço é obrigatório")]
-        [Range(0.01, 9999.99, ErrorMessage = "Preço deve estar entre R$ 0,01 e R$ 9.999,99")]
+        [Range(1.0, 999.99, ErrorMessage = "Preço deve estar entre R$ 1,00 e R$ 999.99")]
         public decimal Preco { get; set; }
 
         [Required(ErrorMessage = "Tipo de produto é obrigatório")]
         public int idTipoProduto { get; set; }
-
         public string? TipoProdutoNome { get; set; }
         public string? ImagemUrl { get; set; }
         public bool Ativo { get; set; } = true;

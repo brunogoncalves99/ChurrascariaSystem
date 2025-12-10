@@ -12,12 +12,17 @@ namespace ChurrascariaSystem.Application.Services
         private readonly IPedidoRepository _pedidoRepository;
         private readonly IProdutoRepository _produtoRepository;
         private readonly IMesaRepository _mesaRepository;
+        private readonly IEstoqueService _estoqueService;
 
-        public PedidoService(IPedidoRepository pedidoRepository, IProdutoRepository produtoRepository, IMesaRepository mesaRepository)
+        public PedidoService(IPedidoRepository pedidoRepository,
+            IProdutoRepository produtoRepository, 
+            IMesaRepository mesaRepository, 
+            IEstoqueService estoqueService)
         {
             _pedidoRepository = pedidoRepository;
             _produtoRepository = produtoRepository;
             _mesaRepository = mesaRepository;
+            _estoqueService = estoqueService;
         }
 
         public async Task<PedidoDTO?> GetByIdAsync(int id)
@@ -57,8 +62,19 @@ namespace ChurrascariaSystem.Application.Services
 
             foreach (var itemDto in pedidoDto.Itens)
             {
+                // Verificar estoque disponível
+                var temEstoque = await _estoqueService.VerificarEstoqueDisponivel(itemDto.idProduto, itemDto.Quantidade);
+
+                if (!temEstoque)
+                    throw new Exception("Estoque insuficiente");
+
+
                 var produto = await _produtoRepository.GetByIdAsync(itemDto.idProduto);
-                if (produto == null) continue;
+                if (produto == null) 
+                    continue;
+
+                // Dar baixa no estoque
+                await _estoqueService.DarBaixaAsync(itemDto.idProduto, itemDto.Quantidade, itemDto.idPedido, pedidoDto.idUsuario);
 
                 var item = new ItemPedido
                 {
@@ -67,11 +83,12 @@ namespace ChurrascariaSystem.Application.Services
                     PrecoUnitario = produto.PrecoValor,
                     Observacao = itemDto.Observacao
                 };
+
                 item.CalcularSubtotal();
                 pedido.Itens.Add(item);
             }
 
-            // Atualizar status da mesa para Ocupado para não deixar reservar uma mesa que já está ocupada
+            // Atualizar status da mesa para Ocupado para não deixar reservar uma mesa que já tem pedido
             var mesa = await _mesaRepository.GetByIdAsync(pedidoDto.idMesa);
             if (mesa != null)
             {

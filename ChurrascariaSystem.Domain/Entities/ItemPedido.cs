@@ -9,8 +9,6 @@
         public decimal PrecoUnitario { get; set; }
         public decimal Subtotal { get; set; }
         public string? Observacao { get; set; }
-
-        // Navigation Properties
         public Pedido Pedido { get; set; } = null!;
         public Produto Produto { get; set; } = null!;
 

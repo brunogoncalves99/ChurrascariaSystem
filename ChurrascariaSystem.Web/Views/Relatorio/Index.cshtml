@@ -1,0 +1,182 @@
+﻿@{
+    ViewData["Title"] = "Relatórios";
+}
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2><i class="fas fa-file-pdf text-danger"></i> Relatórios em PDF</h2>
+        <p class="text-muted">Gere relatórios completos em PDF para análise e impressão</p>
+    </div>
+</div>
+
+@if (TempData["Erro"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle"></i> @TempData["Erro"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-clipboard-list"></i> Relatórios Operacionais</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="card border-primary h-100">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-calendar-day text-primary"></i> Vendas Diárias</h5>
+                        <p class="card-text">Relatório completo de todas as vendas do dia com detalhamento de pedidos.</p>
+                        <form asp-action="VendasDiaria" method="get" class="mt-3">
+                            <div class="input-group">
+                                <input type="date" name="data" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-download"></i> Gerar PDF
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <div class="card border-success h-100">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-calendar-alt text-success"></i> Faturamento Mensal</h5>
+                        <p class="card-text">Análise completa do faturamento do mês com breakdown diário.</p>
+                        <form asp-action="FaturamentoMensal" method="get" class="mt-3">
+                            <div class="row g-2">
+                                <div class="col">
+                                    <select name="mes" class="form-select">
+                                        @for (int i = 1; i <= 12; i++)
+                                        {
+                                            <option value="@i" selected="@(i == DateTime.Today.Month)">
+                                                @(new DateTime(2000, i, 1).ToString("MMMM"))
+                                            </option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <select name="ano" class="form-select">
+                                        @for (int i = DateTime.Today.Year; i >= DateTime.Today.Year - 5; i--)
+                                        {
+                                            <option value="@i">@i</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-auto">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-download"></i> Gerar
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-chart-line"></i> Relatórios Gerenciais</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="card border-warning h-100">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-trophy text-warning"></i> Produtos Mais Vendidos</h5>
+                        <p class="card-text">Top 20 produtos mais vendidos no período com análise de faturamento.</p>
+                        <form asp-action="ProdutosMaisVendidos" method="get" class="mt-3">
+                            <div class="row g-2">
+                                <div class="col">
+                                    <label class="form-label">Data Início</label>
+                                    <input type="date" name="dataInicio" class="form-control"
+                                           value="@DateTime.Today.AddDays(-30).ToString("yyyy-MM-dd")" />
+                                </div>
+                                <div class="col">
+                                    <label class="form-label">Data Fim</label>
+                                    <input type="date" name="dataFim" class="form-control"
+                                           value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-warning mt-2 w-100">
+                                <i class="fas fa-download"></i> Gerar PDF
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <div class="card border-secondary h-100">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-money-bill-wave text-secondary"></i> Formas de Pagamento</h5>
+                        <p class="card-text">Análise de vendas por forma de pagamento com percentuais.</p>
+                        <form asp-action="FormasPagamento" method="get" class="mt-3">
+                            <div class="row g-2">
+                                <div class="col">
+                                    <label class="form-label">Data Início</label>
+                                    <input type="date" name="dataInicio" class="form-control"
+                                           value="@DateTime.Today.AddDays(-30).ToString("yyyy-MM-dd")" />
+                                </div>
+                                <div class="col">
+                                    <label class="form-label">Data Fim</label>
+                                    <input type="date" name="dataFim" class="form-control"
+                                           value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-secondary mt-2 w-100">
+                                <i class="fas fa-download"></i> Gerar PDF
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <div class="card border-danger h-100">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-user-tie text-danger"></i> Performance dos Garçons</h5>
+                        <p class="card-text">Ranking de garçons por faturamento e quantidade de pedidos.</p>
+                        <form asp-action="PerformanceGarcom" method="get" class="mt-3">
+                            <div class="row g-2">
+                                <div class="col">
+                                    <label class="form-label">Data Início</label>
+                                    <input type="date" name="dataInicio" class="form-control"
+                                           value="@DateTime.Today.AddDays(-30).ToString("yyyy-MM-dd")" />
+                                </div>
+                                <div class="col">
+                                    <label class="form-label">Data Fim</label>
+                                    <input type="date" name="dataFim" class="form-control"
+                                           value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-danger mt-2 w-100">
+                                <i class="fas fa-download"></i> Gerar PDF
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i>
+    <strong>Dica:</strong> Os relatórios são gerados em formato PDF e podem ser salvos, impressos ou compartilhados.
+    Todos os relatórios respeitam o período de vendas pagas (finalizadas).
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-hide alerts
+        setTimeout(function() {
+            $('.alert-danger').fadeOut();
+        }, 5000);
+    </script>
+}

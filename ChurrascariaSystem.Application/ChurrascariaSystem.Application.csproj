@@ -10,6 +10,7 @@
     <PackageReference Include="AutoMapper" Version="12.0.1" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="FluentValidation" Version="11.9.0" />
+    <PackageReference Include="QuestPDF" Version="2024.10.2" />
   </ItemGroup>
 
   <ItemGroup>
