@@ -1,0 +1,574 @@
+﻿@model IEnumerable<ChurrascariaSystem.Application.DTOs.EstoqueDTO>
+@{
+    ViewData["Title"] = "Gerenciamento de Estoque";
+}
+
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-boxes"></i> Gerenciamento de Estoque</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            @if (ViewBag.ProdutosSemEstoque != null && ViewBag.ProdutosSemEstoque.Count > 0)
+            {
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCriarEstoque">
+                    <i class="fas fa-plus"></i> Criar Estoque
+                </button>
+            }
+            <a href="@Url.Action("Alertas", "Estoque")" class="btn btn-warning">
+                <i class="fas fa-exclamation-triangle"></i> Alertas
+                @if (ViewBag.TotalEstoqueBaixo > 0 || ViewBag.TotalEstoqueEsgotado > 0)
+                {
+                    <span class="badge bg-danger">@(ViewBag.TotalEstoqueBaixo + ViewBag.TotalEstoqueEsgotado)</span>
+                }
+            </a>
+        </div>
+    </div>
+
+    <!-- Cards de Resumo -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total de Produtos</h5>
+                    <h2>@Model.Count()</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Estoque OK</h5>
+                    <h2>@Model.Count(e => !e.EstoqueBaixo && !e.EstoqueEsgotado)</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Estoque Baixo</h5>
+                    <h2>@ViewBag.TotalEstoqueBaixo</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Esgotado</h5>
+                    <h2>@ViewBag.TotalEstoqueEsgotado</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mensagens -->
+    @if (TempData["Sucesso"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> @TempData["Sucesso"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Erro"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> @TempData["Erro"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Tabela de Estoque -->
+    <div class="card">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-list"></i> Lista de Produtos em Estoque</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover" id="tabelaEstoque">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Produto</th>
+                            <th>Quantidade Atual</th>
+                            <th>Quantidade Mínima</th>
+                            <th>Status</th>
+                            <th>Última Atualização</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var estoque in Model.OrderBy(e => e.NomeProduto))
+                            {
+                                <tr>
+                                    <td>@estoque.idProduto</td>
+                                    <td><strong>@estoque.NomeProduto</strong></td>
+                                    <td>
+                                        <span class="badge @(estoque.EstoqueEsgotado ? "bg-danger" : estoque.EstoqueBaixo ? "bg-warning" : "bg-success") fs-6">
+                                            @estoque.QuantidadeAtual
+                                        </span>
+                                    </td>
+                                    <td>@estoque.QuantidadeMinima</td>
+                                    <td>
+                                        @if (estoque.EstoqueEsgotado)
+                                        {
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times-circle"></i> Esgotado
+                                            </span>
+                                        }
+                                        else if (estoque.EstoqueBaixo)
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="fas fa-exclamation-triangle"></i> Baixo
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle"></i> OK
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>@estoque.UltimaAtualizacao.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-success"
+                                                    onclick="abrirModalEntrada(@estoque.idProduto, '@estoque.NomeProduto', @estoque.QuantidadeAtual)"
+                                                    title="Dar Entrada">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-warning"
+                                                    onclick="abrirModalAjuste(@estoque.idProduto, '@estoque.NomeProduto', @estoque.QuantidadeAtual)"
+                                                    title="Ajustar">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-info"
+                                                    onclick="abrirModalHistorico(@estoque.idProduto, '@estoque.NomeProduto')"
+                                                    title="Ver Histórico">
+                                                <i class="fas fa-history"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-secondary"
+                                                    onclick="abrirModalConfig(@estoque.idEstoque, @estoque.idProduto, '@estoque.NomeProduto', @estoque.QuantidadeMinima)"
+                                                    title="Configurar">
+                                                <i class="fas fa-cog"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">
+                                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                                    <p>Nenhum produto com estoque cadastrado ainda.</p>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalCriarEstoque" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-plus"></i> Criar Novo Estoque</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCriarEstoque">
+                    <div class="mb-3">
+                        <label class="form-label">Produto</label>
+                        <select class="form-select" id="criarProdutoId" required>
+                            <option value="">Selecione um produto</option>
+                            @if (ViewBag.ProdutosSemEstoque != null)
+                            {
+                                foreach (var produto in ViewBag.ProdutosSemEstoque)
+                                {
+                                    <option value="@produto.idProduto">@produto.Nome</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quantidade Inicial</label>
+                        <input type="number" class="form-control" id="criarQuantidade" min="0" value="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quantidade Mínima (Alerta)</label>
+                        <input type="number" class="form-control" id="criarQuantidadeMinima" min="1" value="10" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="criarEstoque()">
+                    <i class="fas fa-save"></i> Criar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEntrada" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-plus"></i> Dar Entrada no Estoque</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEntrada">
+                    <input type="hidden" id="entradaProdutoId">
+                    <div class="alert alert-info">
+                        <strong>Produto:</strong> <span id="entradaProdutoNome"></span><br>
+                        <strong>Quantidade Atual:</strong> <span id="entradaQuantidadeAtual"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quantidade a Adicionar</label>
+                        <input type="number" class="form-control" id="entradaQuantidade" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Motivo</label>
+                        <select class="form-select" id="entradaMotivo" required>
+                            <option value="Compra">Compra</option>
+                            <option value="Devolução">Devolução</option>
+                            <option value="Transferência">Transferência</option>
+                            <option value="Ajuste">Ajuste</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Observação (opcional)</label>
+                        <textarea class="form-control" id="entradaObservacao" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="darEntrada()">
+                    <i class="fas fa-check"></i> Confirmar Entrada
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ajustar Estoque -->
+<div class="modal fade" id="modalAjuste" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Ajustar Estoque</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formAjuste">
+                    <input type="hidden" id="ajusteProdutoId">
+                    <div class="alert alert-warning">
+                        <strong>Produto:</strong> <span id="ajusteProdutoNome"></span><br>
+                        <strong>Quantidade Atual:</strong> <span id="ajusteQuantidadeAtual"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nova Quantidade</label>
+                        <input type="number" class="form-control" id="ajusteNovaQuantidade" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Motivo</label>
+                        <select class="form-select" id="ajusteMotivo" required>
+                            <option value="Inventário">Inventário</option>
+                            <option value="Perda">Perda</option>
+                            <option value="Avaria">Avaria</option>
+                            <option value="Vencimento">Vencimento</option>
+                            <option value="Correção">Correção</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning" onclick="ajustarEstoque()">
+                    <i class="fas fa-check"></i> Confirmar Ajuste
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Histórico -->
+<div class="modal fade" id="modalHistorico" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-history"></i> Histórico de Movimentações</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6 id="historicoProdutoNome" class="mb-3"></h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Tipo</th>
+                                <th>Quantidade</th>
+                                <th>Anterior</th>
+                                <th>Nova</th>
+                                <th>Motivo</th>
+                                <th>Usuário</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historicoTabela">
+                            <tr>
+                                <td colspan="7" class="text-center">
+                                    <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">Carregando...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalConfig" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title"><i class="fas fa-cog"></i> Configurações de Estoque</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formConfig">
+                    <input type="hidden" id="configEstoqueId">
+                    <input type="hidden" id="configProdutoId">
+                    <div class="alert alert-secondary">
+                        <strong>Produto:</strong> <span id="configProdutoNome"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quantidade Mínima (Alerta de Estoque Baixo)</label>
+                        <input type="number" class="form-control" id="configQuantidadeMinima" min="1" required>
+                        <small class="form-text text-muted">
+                            Quando o estoque atingir ou ficar abaixo deste valor, será exibido um alerta.
+                        </small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="salvarConfiguracao()">
+                    <i class="fas fa-save"></i> Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Criar novo estoque
+        function criarEstoque() {
+            const idProduto = $('#criarProdutoId').val();
+            const quantidade = $('#criarQuantidade').val();
+            const quantidadeMinima = $('#criarQuantidadeMinima').val();
+
+            if (!idProduto) {
+                alert('Selecione um produto');
+                return;
+            }
+
+            const data = {
+                idProduto: parseInt(idProduto),
+                quantidadeAtual: parseInt(quantidade),
+                quantidadeMinima: parseInt(quantidadeMinima)
+            };
+
+            $.ajax({
+                url: '@Url.Action("Create", "Estoque")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(response) {
+                    if (response.success) {
+                        $('#modalCriarEstoque').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Erro: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Erro ao criar estoque');
+                }
+            });
+        }
+
+        // Abrir modal de entrada
+        function abrirModalEntrada(idProduto, produtoNome, quantidadeAtual) {
+            $('#entradaProdutoId').val(idProduto);
+            $('#entradaProdutoNome').text(produtoNome);
+            $('#entradaQuantidadeAtual').text(quantidadeAtual);
+            $('#entradaQuantidade').val(1);
+            $('#entradaMotivo').val('Compra');
+            $('#entradaObservacao').val('');
+            $('#modalEntrada').modal('show');
+        }
+
+        // Dar entrada
+        function darEntrada() {
+            const data = {
+                idProduto: parseInt($('#entradaProdutoId').val()),
+                quantidade: parseInt($('#entradaQuantidade').val()),
+                motivo: $('#entradaMotivo').val(),
+                observacao: $('#entradaObservacao').val()
+            };
+
+            $.ajax({
+                url: '@Url.Action("DarEntrada", "Estoque")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(response) {
+                    if (response.success) {
+                        $('#modalEntrada').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Erro: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Erro ao dar entrada no estoque');
+                }
+            });
+        }
+
+        // Abrir modal de ajuste
+        function abrirModalAjuste(idProduto, produtoNome, quantidadeAtual) {
+            $('#ajusteProdutoId').val(idProduto);
+            $('#ajusteProdutoNome').text(produtoNome);
+            $('#ajusteQuantidadeAtual').text(quantidadeAtual);
+            $('#ajusteNovaQuantidade').val(quantidadeAtual);
+            $('#ajusteMotivo').val('Inventário');
+            $('#modalAjuste').modal('show');
+        }
+
+        // Ajustar estoque
+        function ajustarEstoque() {
+            const data = {
+                idProduto: parseInt($('#ajusteProdutoId').val()),
+                novaQuantidade: parseInt($('#ajusteNovaQuantidade').val()),
+                motivo: $('#ajusteMotivo').val()
+            };
+
+            $.ajax({
+                url: '@Url.Action("AjustarEstoque", "Estoque")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(response) {
+                    if (response.success) {
+                        $('#modalAjuste').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Erro: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Erro ao ajustar estoque');
+                }
+            });
+        }
+
+        // Abrir modal de histórico
+        function abrirModalHistorico(idProduto, produtoNome) {
+            $('#historicoProdutoNome').text('Produto: ' + produtoNome);
+            $('#historicoTabela').html('<tr><td colspan="7" class="text-center"><div class="spinner-border" role="status"></div></td></tr>');
+            $('#modalHistorico').modal('show');
+
+            $.ajax({
+                url: '@Url.Action("GetMovimentacoes", "Estoque")',
+                type: 'GET',
+                data: { idProduto: idProduto },
+                success: function(response) {
+                    if (response.success) {
+                        let html = '';
+                        if (response.data.length === 0) {
+                            html = '<tr><td colspan="7" class="text-center text-muted">Nenhuma movimentação encontrada</td></tr>';
+                        } else {
+                            response.data.forEach(function(mov) {
+                                const tipo = mov.tipoMovimentacao;
+                                const badge = tipo === 'Entrada' ? 'success' : tipo === 'Saida' ? 'danger' : 'warning';
+                                const data = new Date(mov.dataMovimentacao).toLocaleString('pt-BR');
+
+                                html += `<tr>
+                                    <td>${data}</td>
+                                    <td><span class="badge bg-${badge}">${tipo}</span></td>
+                                    <td><strong>${mov.quantidade}</strong></td>
+                                    <td>${mov.quantidadeAnterior}</td>
+                                    <td>${mov.quantidadeNova}</td>
+                                    <td>${mov.motivo}</td>
+                                    <td>${mov.usuarioNome}</td>
+                                </tr>`;
+                            });
+                        }
+                        $('#historicoTabela').html(html);
+                    } else {
+                        $('#historicoTabela').html('<tr><td colspan="7" class="text-center text-danger">Erro ao carregar histórico</td></tr>');
+                    }
+                },
+                error: function() {
+                    $('#historicoTabela').html('<tr><td colspan="7" class="text-center text-danger">Erro ao carregar histórico</td></tr>');
+                }
+            });
+        }
+
+        // Abrir modal de configuração
+        function abrirModalConfig(estoqueId, idProduto, produtoNome, quantidadeMinima) {
+            $('#configEstoqueId').val(estoqueId);
+            $('#configProdutoId').val(idProduto);
+            $('#configProdutoNome').text(produtoNome);
+            $('#configQuantidadeMinima').val(quantidadeMinima);
+            $('#modalConfig').modal('show');
+        }
+
+        // Salvar configuração
+        function salvarConfiguracao() {
+            const data = {
+                id: parseInt($('#configEstoqueId').val()),
+                idProduto: parseInt($('#configProdutoId').val()),
+                quantidadeMinima: parseInt($('#configQuantidadeMinima').val())
+            };
+
+            $.ajax({
+                url: '@Url.Action("UpdateConfig", "Estoque")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(response) {
+                    if (response.success) {
+                        $('#modalConfig').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Erro: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Erro ao salvar configuração');
+                }
+            });
+        }
+
+        // Auto-hide alerts
+        setTimeout(function() {
+            $('.alert').fadeOut('slow');
+        }, 5000);
+    </script>
+}

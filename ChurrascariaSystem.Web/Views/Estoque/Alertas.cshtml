@@ -1,0 +1,138 @@
+﻿@{
+    ViewData["Title"] = "Alertas de Estoque";
+    var estoqueBaixo = ViewBag.EstoqueBaixo as IEnumerable<ChurrascariaSystem.Application.DTOs.EstoqueDTO>;
+    var estoqueEsgotado = ViewBag.EstoqueEsgotado as IEnumerable<ChurrascariaSystem.Application.DTOs.EstoqueDTO>;
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-exclamation-triangle"></i> Alertas de Estoque</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="@Url.Action("Index", "Estoque")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-times-circle"></i> Estoque Esgotado</h5>
+                </div>
+                <div class="card-body">
+                    @if (estoqueEsgotado != null && estoqueEsgotado.Any())
+                    {
+                        <div class="alert alert-danger">
+                            <strong>@estoqueEsgotado.Count()</strong> produto(s) com estoque zerado!
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Produto</th>
+                                        <th>Quantidade Mínima</th>
+                                        <th>Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in estoqueEsgotado)
+                                    {
+                                        <tr>
+                                            <td><strong>@item.NomeProduto</strong></td>
+                                            <td>@item.QuantidadeMinima</td>
+                                            <td>
+                                                <a href="@Url.Action("Index", "Estoque")" class="btn btn-sm btn-success">
+                                                    <i class="fas fa-plus"></i> Dar Entrada
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted">
+                            <i class="fas fa-check-circle fa-3x mb-3 text-success"></i>
+                            <p>Nenhum produto com estoque esgotado!</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-warning">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Estoque Baixo</h5>
+                </div>
+                <div class="card-body">
+                    @if (estoqueBaixo != null && estoqueBaixo.Any())
+                    {
+                        <div class="alert alert-warning">
+                            <strong>@estoqueBaixo.Count()</strong> produto(s) com estoque baixo!
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Produto</th>
+                                        <th>Quantidade Atual</th>
+                                        <th>Quantidade Mínima</th>
+                                        <th>Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in estoqueBaixo)
+                                    {
+                                        <tr>
+                                            <td><strong>@item.NomeProduto</strong></td>
+                                            <td>
+                                                <span class="badge bg-warning text-dark">
+                                                    @item.QuantidadeAtual
+                                                </span>
+                                            </td>
+                                            <td>@item.QuantidadeMinima</td>
+                                            <td>
+                                                <a href="@Url.Action("Index", "Estoque")" class="btn btn-sm btn-success">
+                                                    <i class="fas fa-plus"></i> Dar Entrada
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted">
+                            <i class="fas fa-check-circle fa-3x mb-3 text-success"></i>
+                            <p>Nenhum produto com estoque baixo!</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if ((estoqueBaixo != null && estoqueBaixo.Any()) || (estoqueEsgotado != null && estoqueEsgotado.Any()))
+    {
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Recomendações</h5>
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li><strong>Produtos Esgotados:</strong> Realizar compra urgente para evitar falta no atendimento</li>
+                    <li><strong>Produtos com Estoque Baixo:</strong> Planejar reposição antes que se esgotem</li>
+                    <li><strong>Configuração:</strong> Ajuste a "Quantidade Mínima" de cada produto conforme sua demanda</li>
+                </ul>
+            </div>
+        </div>
+    }
+</div>

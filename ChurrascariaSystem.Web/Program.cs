@@ -3,6 +3,7 @@ using ChurrascariaSystem.Application.Services;
 using ChurrascariaSystem.Domain.Interfaces;
 using ChurrascariaSystem.Infrastructure.Data;
 using ChurrascariaSystem.Infrastructure.Repositories;
+using ChurrascariaSystem.Web.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
@@ -52,7 +53,11 @@ builder.Services.AddScoped<IMesaService, MesaService>();
 builder.Services.AddScoped<IPedidoService, PedidoService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IRelatorioService, RelatorioService>();
+
 builder.Services.AddScoped<IEstoqueService, EstoqueService>();
+
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddHostedService<MonitoramentoEstoqueService>();
 
 QuestPDF.Settings.License = LicenseType.Community;
 

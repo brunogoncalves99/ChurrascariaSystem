@@ -66,7 +66,9 @@ namespace ChurrascariaSystem.Application.Services
                 var temEstoque = await _estoqueService.VerificarEstoqueDisponivel(itemDto.idProduto, itemDto.Quantidade);
 
                 if (!temEstoque)
+                {
                     throw new Exception("Estoque insuficiente");
+                }
 
 
                 var produto = await _produtoRepository.GetByIdAsync(itemDto.idProduto);
