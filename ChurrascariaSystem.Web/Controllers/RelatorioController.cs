@@ -27,12 +27,12 @@ namespace ChurrascariaSystem.Web.Controllers
         /// Gera PDF da conta do cliente
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> ContaCliente(int mesaId)
+        public async Task<IActionResult> ContaCliente(int idMesa)
         {
             try
             {
-                var pdf = await _relatorioService.GerarContaClienteAsync(mesaId);
-                return File(pdf, "application/pdf", $"Conta_Mesa_{mesaId}.pdf");
+                var pdf = await _relatorioService.GerarContaClienteAsync(idMesa);
+                return File(pdf, "application/pdf", $"Conta_Mesa_{idMesa}.pdf");
             }
             catch (Exception ex)
             {

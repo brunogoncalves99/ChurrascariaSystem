@@ -151,10 +151,12 @@
                 @if (!Model.PossuiPedidosAbertos)
                 {
                    <div class="d-grid gap-2">
-                       <button type="button" class="btn btn-success btn-lg"
-                               onclick="prepararFecharConta(@Model.idMesa, '@Model.MesaNumero', @Model.ValorTotal)">
-                           <i class="fas fa-check"></i> Fechar Conta
-                       </button>
+                        <button type="button" class="btn btn-success"
+                                data-bs-toggle="modal"
+                                data-bs-target="#fecharContaModal"
+                                onclick="prepararFecharConta(@Model.idMesa, '@Model.MesaNumero', @Model.ValorTotal.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))">
+                            <i class="fas fa-cash-register"></i> Fechar Conta
+                        </button>
 
                        <a href="@Url.Action("ContaCliente", "Relatorio", new { idMesa = Model.idMesa })"
                           class="btn btn-danger"
@@ -176,18 +178,18 @@
 </div>
 
 <div class="modal fade" id="fecharContaModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
                 <h5 class="modal-title">
-                    <i class="fas fa-cash-register"></i> Fechar Conta - Mesa @Model.MesaNumero
+                    <i class="fas fa-cash-register"></i> Fechar Conta
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form asp-action="FecharConta" method="post">
                 @Html.AntiForgeryToken()
-                <input type="hidden" name="mesaId" value="@Model.idMesa" />
-                
+                <input type="hidden" name="idMesa" id="modalMesaId" />
+
                 <div class="modal-body">
                     <div class="mb-4">
                         <h5><i class="fas fa-list"></i> Resumo dos Itens</h5>
@@ -202,15 +204,15 @@
                             <tbody>
                                 @{
                                     var itensAgrupados = Model.Pedidos
-                                        .SelectMany(p => p.Itens)
-                                        .GroupBy(i => i.ProdutoNome)
-                                        .Select(g => new
-                                        {
-                                            Nome = g.Key,
-                                            Quantidade = g.Sum(i => i.Quantidade),
-                                            Total = g.Sum(i => i.Subtotal)
-                                        })
-                                        .OrderBy(i => i.Nome);
+                                    .SelectMany(p => p.Itens)
+                                    .GroupBy(i => i.ProdutoNome)
+                                    .Select(g => new
+                                    {
+                                        Nome = g.Key,
+                                        Quantidade = g.Sum(i => i.Quantidade),
+                                        Total = g.Sum(i => i.Subtotal)
+                                    })
+                                    .OrderBy(i => i.Nome);
                                 }
                                 @foreach (var item in itensAgrupados)
                                 {
@@ -254,7 +256,7 @@
                         <i class="fas fa-times"></i> Cancelar
                     </button>
                     <button type="submit" class="btn btn-success btn-lg">
-                        <i class="fas fa-check"></i> Confirmar Pagamento - R$ @Model.ValorTotal.ToString("N2")
+                        <i class="fas fa-check"></i> Confirmar Pagamento
                     </button>
                 </div>
             </form>
@@ -267,5 +269,15 @@
         function imprimirConta() {
             window.print();
         }
+
+        function prepararFecharConta(idMesa, mesaNumero, valorTotal) {
+            $('#modalMesaId').val(idMesa);
+            $('#modalMesaNumero').text(mesaNumero);
+            $('#modalValorTotal').text(parseFloat(valorTotal).toFixed(2).replace('.', ','));
+        }
+
+        setTimeout(function() {
+            $('.alert-dismissible').fadeOut('slow');
+        }, 5000);
     </script>
 }
